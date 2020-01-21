@@ -11,7 +11,8 @@ const server = express();
 // connecting to mongoDB
 mongoose.connect(process.env.DB_CONNECTION,{
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    useCreateIndex : true
 });
 
 // configuring the server
@@ -41,11 +42,7 @@ server.use((req,res,next) => {
 
 server.use((error, req,res,next) => {
     res.status(error.status || 500);
-    res.json({
-        error : {
-            message : error.message
-        }
-    });
+    res.json({});
 });
 
 // Listening on port 80

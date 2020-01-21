@@ -3,9 +3,15 @@ const mongoose = require('mongoose');
 
 // define the schema
 const userSchema = mongoose.Schema({
-    _id : mongoose.Schema.Types.ObjectId,
-    username : String,
-    password : String,
+    username : {
+        type : String,
+        unique : true,
+        required : true
+    },
+    password : {
+        type : String,
+        required : true
+    },
     rides : Array
 });
 
