@@ -56,7 +56,6 @@ router.post('/write', async (req, res, next) => {
 router.post('/read', async (req, res, next) => {
 
     const table = req.body.table;
-    const query = req.body.query;
 
     if (table === "user") {
         console.log('Reading db');

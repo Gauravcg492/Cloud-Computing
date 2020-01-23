@@ -1,12 +1,13 @@
 // dependencies
 const express = require('express');
+const request = require('request-promise');
 
 //variables
 const router = express.Router();
 
 // setting routes
 // 3. Create new ride
-router.post('/',(req,res,next) => {
+router.post('/', async (req, res, next) => {
     // getting the request body
     const username = req.body.created_by;
     const timeStamp = req.body.timestamp;
@@ -14,53 +15,81 @@ router.post('/',(req,res,next) => {
     const destination = req.body.destination;
 
     // TODO validate
+    var body = {
+        table: 'user',
+        where: {
+            username: username
+        }
+    };
+
+    var options = {
+        url: 'http://localhost:80/v1/db/read',
+        body: JSON.stringify(body),
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+
+    try{
+        var response = await request.post(options);
+        body = {
+            table : "ride",
+            values : []
+        }
+
+    } catch{
+        const error = new Error("400 Bad Request");
+        error.status = 400;
+        next(error);
+    }
 
     // create object
     const ride = {
-        username : username,
-        timeStamp : timeStamp,
-        source : source,
-        destination : destination
+        username: username,
+        timeStamp: timeStamp,
+        source: source,
+        destination: destination
     }
     res.status(201).json({
-        rideDetails : ride
+        rideDetails: ride
     });
 });
 
 // 4. List all upcoming rides for given source and destination
-router.get('/', (req,res,next) => {
+router.get('/', (req, res, next) => {
     res.status(204).json([]);
 });
 
 // 5. List all details for given ride
-router.get('/:rideID', (req,res,next) => {
+router.get('/:rideID', (req, res, next) => {
     res.status(204).json({});
 });
 
 // 6. Join existing ride
-router.post('/:rideID', (req,res,next) => {
+router.post('/:rideID', (req, res, next) => {
     // get request body
     const username = req.body.username;
 
     const ride = {
-        username : username
+        username: username
     }
     // change 200 to 204
     res.status(200).json({
-        rideToJoin : ride
+        rideToJoin: ride
     });
 });
 
 // 7. Delete a ride
-router.delete('/:rideID', (req,res,next) => {
+router.delete('/:rideID', (req, res, next) => {
     res.status(200).json({});
 });
 
 
-router.delete('/:username',(req,res,next) => {
+router.delete('/:username', (req, res, next) => {
     res.status(200).json({
-        message : 'delete user',
-        name : req.params.username
+        message: 'delete user',
+        name: req.params.username
     });
 });
 
