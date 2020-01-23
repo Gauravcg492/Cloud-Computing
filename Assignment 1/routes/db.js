@@ -37,6 +37,18 @@ router.post('/write', async (req, res, next) => {
             }
 
         }
+    } else if(action == 2){
+        if(table === 'user'){
+            try{
+                const response = await User.deleteOne(req.body.where);
+                console.log(response);
+                res.status(200).json({});
+            } catch{
+                const error = new Error('400 Bad Request');
+                error.status = 400;
+                next(error);
+            }
+        }
     }
 });
 
@@ -46,7 +58,7 @@ router.post('/read', async (req, res, next) => {
     const table = req.body.table;
     const query = req.body.query;
 
-    if (table === "user" && query === "check") {
+    if (table === "user") {
         console.log('Reading db');
         try{
             var result = await User.findOne(req.body.where);

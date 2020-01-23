@@ -26,7 +26,6 @@ router.put('/', async (req, res, next) => {
         // check if user exists
         var body = {
             table: 'user',
-            query: 'check',
             where: {
                 username: username
             }
@@ -79,11 +78,39 @@ router.put('/', async (req, res, next) => {
 });
 
 // 2.Remove user
-router.delete('/:username', (req, res, next) => {
-    res.status(200).json({
+router.delete('/:username', async (req, res, next) => {
+    const username = req.params.username;
+
+    var body = {
+        table: 'user',
+        action : 2,
+        where: {
+            username: username
+        }
+    };
+    var options = {
+        url: 'http://localhost:80/v1/db/write',
+        body: JSON.stringify(body),
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+
+    try{
+        var response = await request.post(options);
+        console.log('delete response');
+        console.log(response);
+        res.status(200).json({});
+    } catch(error){
+        next(error);
+    }
+
+
+    /*res.status(200).json({
         message: 'delete user',
         name: req.params.username
-    });
+    });*/
 });
 
 // export the router
