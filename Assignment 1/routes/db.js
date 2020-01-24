@@ -1,6 +1,7 @@
 // dependencies
 const express = require('express');
 const User = require('../models/user');
+const Ride = require('../models/ride');
 
 // variables
 const router = express.Router();
@@ -36,6 +37,28 @@ router.post('/write', async (req, res, next) => {
                 });
             }
 
+        }
+        if(table === 'ride')
+        {
+            const ride = new Ride({
+                created_by : req.body.values[0],
+                timestamp : req.body.values[1],
+                source : req.body.values[2],
+                destination : req.body.values[3]
+            });
+            try{
+                console.log('Saving ride details');
+                const savedRide = await ride.save();
+                console.log(savedRide);
+                res.json({
+                    statusCode : 201
+                });
+            } catch(err){
+                console.log(err);
+                const error = new Error('500 Bad Request');
+                error.status(500);
+                next(error);
+            }
         }
     } else if(action == 2){
         if(table === 'user'){

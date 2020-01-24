@@ -11,8 +11,13 @@ router.post('/', async (req, res, next) => {
     // getting the request body
     const username = req.body.created_by;
     const timeStamp = req.body.timestamp;
-    const source = req.body.source;
-    const destination = req.body.destination;
+    const source = Number(req.body.source);
+    const destination = Number(req.body.destination);
+    if(source < 1 || source > 198 || destination < 1 || destination > 198)
+    {
+        res.status(400).json({});
+        next();
+    }
 
     // TODO validate
     var body = {
@@ -33,27 +38,34 @@ router.post('/', async (req, res, next) => {
 
     try{
         var response = await request.post(options);
-        body = {
-            table : "ride",
-            values : []
-        }
-
     } catch{
         const error = new Error("400 Bad Request");
         error.status = 400;
         next(error);
     }
 
-    // create object
-    const ride = {
-        username: username,
-        timeStamp: timeStamp,
-        source: source,
-        destination: destination
+    body = {
+        action : 1,
+        table : "ride",
+        values : [username,timeStamp,source,destination]
+    };
+    options = {
+        url: 'http://localhost:80/v1/db/write',
+        body: JSON.stringify(body),
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+    try{
+        console.log('Writing ride details');
+        var response = await request.post(options);
+        res.status(response.statusCode).json({});   
+    } catch{
+        const error = new Error("500 Server error");
+        error.status = 500;
+        next(error);
     }
-    res.status(201).json({
-        rideDetails: ride
-    });
 });
 
 // 4. List all upcoming rides for given source and destination

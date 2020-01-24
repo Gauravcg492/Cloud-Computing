@@ -17,11 +17,11 @@ const rideSchema = mongoose.Schema({
         required : true
     },
     source : {
-        type : String,
+        type : Number,
         required : true
     },
     destination : {
-        type : String,
+        type : Number,
         required : true
     }
 });
