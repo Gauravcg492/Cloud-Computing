@@ -16,7 +16,7 @@ router.post('/', async (req, res, next) => {
     if(source < 1 || source > 198 || destination < 1 || destination > 198)
     {
         res.status(400).json({});
-        next();
+        return;
     }
 
     // TODO validate
@@ -37,11 +37,15 @@ router.post('/', async (req, res, next) => {
     };
 
     try{
+        console.log('Checking for user detail');
         var response = await request.post(options);
-    } catch{
+    } catch(err){
+        console.log('Inside rides.js');
+        console.log(err);
         const error = new Error("400 Bad Request");
         error.status = 400;
         next(error);
+        return;
     }
 
     body = {
@@ -60,10 +64,15 @@ router.post('/', async (req, res, next) => {
     try{
         console.log('Writing ride details');
         var response = await request.post(options);
-        res.status(response.statusCode).json({});   
+        console.log('Write complete');
+        console.log(response);
+        response = JSON.parse(response);
+        const statusCode = response.statusCode;
+        console.log('sending response');  
+        res.status(statusCode).json({}); 
     } catch{
         const error = new Error("500 Server error");
-        error.status = 500;
+        error.status = 400;
         next(error);
     }
 });

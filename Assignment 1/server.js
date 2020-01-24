@@ -12,7 +12,8 @@ const server = express();
 mongoose.connect(process.env.DB_CONNECTION,{
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex : true
+    useCreateIndex : true,
+    useFindAndModify : false
 });
 
 // configuring the server

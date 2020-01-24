@@ -31,6 +31,7 @@ router.post('/write', async (req, res, next) => {
                     statusCode: 201
                 });
             } catch (err) {
+                console.log('Inside db');
                 console.log(err);
                 res.json({
                     statusCode: 500
@@ -54,9 +55,10 @@ router.post('/write', async (req, res, next) => {
                     statusCode : 201
                 });
             } catch(err){
+                console.log('Inside ride of db');
                 console.log(err);
                 const error = new Error('500 Bad Request');
-                error.status(500);
+                error.status = 500;
                 next(error);
             }
         }
@@ -66,7 +68,9 @@ router.post('/write', async (req, res, next) => {
                 const response = await User.deleteOne(req.body.where);
                 console.log(response);
                 res.status(200).json({});
-            } catch{
+            } catch(err){
+                console.log('Inside action 2 user db');
+                console.log(err);
                 const error = new Error('400 Bad Request');
                 error.status = 400;
                 next(error);
@@ -89,7 +93,11 @@ router.post('/read', async (req, res, next) => {
                 statusCode : 200
             });
         } catch(err){
-            next(err);
+            console.log('Inside db');
+            console.log(err);
+            const error = new Error("400 Bad request");
+            error.status = 400;
+            next(error);
         }
     }
 
