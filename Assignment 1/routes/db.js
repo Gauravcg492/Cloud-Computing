@@ -15,7 +15,7 @@ router.post('/write', async (req, res, next) => {
     const action = req.body.action;
     const table = req.body.table;
 
-    // if action is 1 create user
+    // if action is 1 create
     if (action == 1) {
         if (table === 'user') {
             const user = new User({
@@ -39,22 +39,22 @@ router.post('/write', async (req, res, next) => {
             }
 
         }
-        if(table === 'ride')
-        {
+        if (table === 'ride') {
             const ride = new Ride({
-                created_by : req.body.values[0],
-                timestamp : req.body.values[1],
-                source : req.body.values[2],
-                destination : req.body.values[3]
+                created_by: req.body.values[0],
+                timestamp: req.body.values[1],
+                source: req.body.values[2],
+                destination: req.body.values[3],
+                users: req.body.values[4]
             });
-            try{
+            try {
                 console.log('Saving ride details');
                 const savedRide = await ride.save();
                 console.log(savedRide);
                 res.json({
-                    statusCode : 201
+                    statusCode: 201
                 });
-            } catch(err){
+            } catch (err) {
                 console.log('Inside ride of db');
                 console.log(err);
                 const error = new Error('500 Bad Request');
@@ -62,17 +62,49 @@ router.post('/write', async (req, res, next) => {
                 next(error);
             }
         }
-    } else if(action == 2){
-        if(table === 'user'){
-            try{
+    } else if (action == 2) {
+        if (table === 'user') {
+            try {
                 const response = await User.deleteOne(req.body.where);
                 console.log(response);
-                res.status(200).json({});
-            } catch(err){
+                res.status(201).json({
+                    statusCode : 201
+                });
+            } catch (err) {
                 console.log('Inside action 2 user db');
                 console.log(err);
                 const error = new Error('400 Bad Request');
-                error.status = 400;
+                error.statusCode = 400;
+                next(error);
+            }
+        } else if(table == 'ride')
+        {
+            try {
+                const response = await Ride.deleteOne(req.body.where);
+                console.log(response);
+                res.status(201).json({
+                    statusCode : 201
+                });
+            } catch (err) {
+                console.log('Inside action 2 user db');
+                console.log(err);
+                const error = new Error('400 Bad Request');
+                error.statusCode = 400;
+                next(error);
+            }
+        }
+    } else if(action == 6){
+        if(table == 'ride'){
+            try{
+                const response = await Ride.update(req.body.where,{ $push : {users : req.body.users}});
+                console.log(response);
+                res.status(200).json({
+                    statusCode : 200
+                });
+            } catch(err){
+                console.log(err);
+                const error = new Error('400 Bad Request');
+                error.statusCode = 400;
                 next(error);
             }
         }
@@ -83,20 +115,40 @@ router.post('/write', async (req, res, next) => {
 router.post('/read', async (req, res, next) => {
 
     const table = req.body.table;
+    
 
     if (table === "user") {
         console.log('Reading db');
-        try{
+        try {
             var result = await User.findOne(req.body.where);
             console.log(result.username);
             res.status(200).json({
-                statusCode : 200
+                statusCode: 200
             });
-        } catch(err){
+        } catch (err) {
             console.log('Inside db');
             console.log(err);
-            const error = new Error("400 Bad request");
-            error.status = 400;
+            res.status(400).json({
+                statusCode : 400
+            });
+        }
+    } else if (table == 'ride') {
+        const action = req.body.action;
+        console.log('Ride db read');
+        var result;
+        try {
+            if(action == 4){
+                result = await Ride.find(req.body.where).select('rideId created_by timestamp -_id');
+            }
+            if(action == 5){
+                result = await Ride.findOne(req.body.where).select('-_id -__v');
+            }            
+            console.log(result);
+            res.status(200).json(result);
+        } catch (err) {
+            console.log(err);
+            const error = new Error('400 Bad Request');
+            error.statusCode = 400;
             next(error);
         }
     }

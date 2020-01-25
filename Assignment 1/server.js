@@ -32,7 +32,7 @@ server.use((req,res,next) => {
 });
 
 // setting the middleware to route the requests
-server.use('/v1',apiV1);
+server.use('/api/v1',apiV1);
 
 // handling bad paths/errors
 server.use((req,res,next) => {

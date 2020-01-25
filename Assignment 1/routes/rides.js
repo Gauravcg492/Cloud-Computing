@@ -1,9 +1,11 @@
 // dependencies
 const express = require('express');
 const request = require('request-promise');
+const areas = require("../constants");
 
 //variables
 const router = express.Router();
+
 
 // setting routes
 // 3. Create new ride
@@ -13,9 +15,9 @@ router.post('/', async (req, res, next) => {
     const timeStamp = req.body.timestamp;
     const source = Number(req.body.source);
     const destination = Number(req.body.destination);
-    if(source < 1 || source > 198 || destination < 1 || destination > 198)
-    {
-        res.status(400).json({});
+    if (areas[source] == undefined || areas[destination] == undefined) {
+        //res.status(400).json({});
+        next(error);
         return;
     }
 
@@ -28,7 +30,7 @@ router.post('/', async (req, res, next) => {
     };
 
     var options = {
-        url: 'http://localhost:80/v1/db/read',
+        url: 'http://localhost:80/api/v1/db/read',
         body: JSON.stringify(body),
         method: 'POST',
         headers: {
@@ -36,83 +38,238 @@ router.post('/', async (req, res, next) => {
         }
     };
 
-    try{
+    try {
         console.log('Checking for user detail');
         var response = await request.post(options);
-    } catch(err){
+    } catch (err) {
         console.log('Inside rides.js');
         console.log(err);
-        const error = new Error("400 Bad Request");
-        error.status = 400;
+        const error = new Error('400 Bad Request');
+        error.statusCode = 400;
         next(error);
         return;
     }
 
     body = {
-        action : 1,
-        table : "ride",
-        values : [username,timeStamp,source,destination]
+        action: 1,
+        table: "ride",
+        values: [username, timeStamp, source, destination, [username]]
     };
     options = {
-        url: 'http://localhost:80/v1/db/write',
+        url: 'http://localhost:80/api/v1/db/write',
         body: JSON.stringify(body),
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         }
     };
-    try{
+    try {
         console.log('Writing ride details');
         var response = await request.post(options);
         console.log('Write complete');
         console.log(response);
         response = JSON.parse(response);
         const statusCode = response.statusCode;
-        console.log('sending response');  
-        res.status(statusCode).json({}); 
+        console.log('sending response');
+        res.status(statusCode).json({});
     } catch{
-        const error = new Error("500 Server error");
-        error.status = 400;
+        const error = new Error('400 Bad Request');
+        error.statusCode = 400;
         next(error);
     }
 });
 
 // 4. List all upcoming rides for given source and destination
-router.get('/', (req, res, next) => {
-    res.status(204).json([]);
+router.get('/', async (req, res, next) => {
+    console.log('Get called');
+    const source = Number(req.query.source);
+    const destination = Number(req.query.destination);
+    if (areas[source] == undefined && areas[destination] == undefined) {
+        res.status(400).json({});
+        return;
+    }
+    const body = {
+        action : 4,
+        table: 'ride',
+        where: {
+            source: source,
+            destination: destination
+        }
+    };
+    const options = {
+        url: 'http://localhost:80/api/v1/db/read',
+        body: JSON.stringify(body),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+    try {
+        var response = await request.post(options);
+        response = JSON.parse(response);
+        console.log('Inside get ride');
+        console.log(response);
+        if (response.length != 0) {
+            res.status(200).json(response);
+        } else {
+            res.status(400).json({});
+        }
+
+    } catch (err) {
+        console.log(err);
+        const error = new Error('400 Bad Request');
+        error.statusCode = 400;
+        next(error);
+    }
 });
 
 // 5. List all details for given ride
-router.get('/:rideID', (req, res, next) => {
-    res.status(204).json({});
+router.get('/:rideId', async (req, res, next) => {
+    const rideId = req.params.rideId;
+    var body = {
+        action : 5,
+        table: 'ride',
+        where: {
+            rideId: rideId
+        }
+    };
+    var options = {
+        url: 'http://localhost:80/api/v1/db/read',
+        body: JSON.stringify(body),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+    try{
+        var response = await request.post(options);
+        response = JSON.parse(response);
+        if(Object.keys(response).length == 0){
+            res.status(400).json({});
+        } else{
+            res.status(200).json(response);
+        }
+    } catch(err){
+        console.log(err);
+        const errror = new Error("400 Bad Request");
+        error.status = 400;
+        next(error);
+    }
+
 });
 
 // 6. Join existing ride
-router.post('/:rideID', (req, res, next) => {
+router.post('/:rideId', async (req, res, next) => {
     // get request body
     const username = req.body.username;
+    const rideId = req.params.rideId;
 
-    const ride = {
-        username: username
+    var body = {
+        action : 4,
+        table : 'ride',
+        where : {
+            rideId : rideId
+        }
+    };
+    var options = {
+        url : 'http://localhost:80/api/v1/db/read',
+        body: JSON.stringify(body),
+        headers: {
+            'Content-Type': 'application/json'
+        }
     }
-    // change 200 to 204
-    res.status(200).json({
-        rideToJoin: ride
-    });
+    try{
+        var response = await request.post(options);
+        response = JSON.parse(response);
+        if(response.length == 0){
+            res.status(400).json({});
+            return;
+        }
+        body = {
+            table : 'user',
+            where : {
+                username : username
+            }
+        };
+        options.body = JSON.stringify(body);
+        response = await request.post(options);
+        response = JSON.parse(response);
+        const statusCode = response.statusCode;
+        if(statusCode != 200){
+            res.status(400).json({});
+            return;
+        }
+    } catch(err){
+        console.log(err);
+        const error = new Error("400 Bad Request");
+        error.status = 400;
+        next(error);
+    }
+
+    body = {
+        action : 6,
+        table : 'ride',
+        users : username,
+        where : {
+            rideId : rideId
+        }
+    };
+    options.url = 'http://localhost:80/api/v1/db/write';
+    options.body = JSON.stringify(body);
+
+    try{
+        var response = await request.post(options);
+        response = JSON.parse(response);
+        const statusCode = response.statusCode;
+        res.status(statusCode).json({});
+
+    } catch(err){
+        console.log(err);
+        const error = new Error("400 Bad Request");
+        error.status = 400;
+        next(error);
+    }
+
 });
 
 // 7. Delete a ride
-router.delete('/:rideID', (req, res, next) => {
-    res.status(200).json({});
+router.delete('/:rideId', async (req, res, next) => {
+    const rideId = req.params.rideId;
+
+    var body = {
+        table: 'ride',
+        action : 2,
+        where: {
+            rideId: rideId
+        }
+    };
+    var options = {
+        url: 'http://localhost:80/api/v1/db/write',
+        body: JSON.stringify(body),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+
+    try{
+        var response = await request.post(options);
+        console.log('delete response');
+        console.log(response);
+        if(response.deletedCount > 0){
+            res.status(200).json({});
+        } else{
+            res.status(400).json({});
+        }
+    } catch(error){
+        next(error);
+    }
 });
 
 
-router.delete('/:username', (req, res, next) => {
-    res.status(200).json({
-        message: 'delete user',
-        name: req.params.username
-    });
-});
+// router.delete('/:username', (req, res, next) => {
+//     res.status(200).json({
+//         message: 'delete user',
+//         name: req.params.username
+//     });
+// });
 
 
 

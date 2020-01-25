@@ -23,13 +23,18 @@ const rideSchema = mongoose.Schema({
     destination : {
         type : Number,
         required : true
+    },
+    users : {
+        type : [{
+            type : String
+        }]
     }
 });
 
 rideSchema.plugin(autoIncrement.plugin,{
     model : 'Ride',
     field : 'rideId',
-    startAt : 1000,
+    startAt : 10000,
     incrementBy : 1 
 });
 

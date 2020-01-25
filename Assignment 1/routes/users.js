@@ -1,7 +1,6 @@
 // dependencies
 const express = require('express');
 const helper = require('../helper');
-const dbHandler = require('./db');
 const request = require('request-promise');
 
 //variables
@@ -31,7 +30,7 @@ router.put('/', async (req, res, next) => {
             }
         };
         var options = {
-            url: 'http://localhost:80/v1/db/read',
+            url: 'http://localhost:80/api/v1/db/read',
             body: JSON.stringify(body),
             method: 'POST',
             headers: {
@@ -50,10 +49,10 @@ router.put('/', async (req, res, next) => {
             body = {
                 action: 1,
                 table: 'user',
-                values: [username, password, []]
+                values: [username, password]
             };
             options = {
-                url: 'http://localhost:80/v1/db/write',
+                url: 'http://localhost:80/api/v1/db/write',
                 method: 'POST',
                 body: JSON.stringify(body),
                 headers: {
@@ -89,7 +88,7 @@ router.delete('/:username', async (req, res, next) => {
         }
     };
     var options = {
-        url: 'http://localhost:80/v1/db/write',
+        url: 'http://localhost:80/api/v1/db/write',
         body: JSON.stringify(body),
         method: 'POST',
         headers: {
@@ -105,12 +104,6 @@ router.delete('/:username', async (req, res, next) => {
     } catch(error){
         next(error);
     }
-
-
-    /*res.status(200).json({
-        message: 'delete user',
-        name: req.params.username
-    });*/
 });
 
 // export the router
