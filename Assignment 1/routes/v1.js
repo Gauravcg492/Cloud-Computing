@@ -18,9 +18,7 @@ api.use('/db',dbHandler);
 
 // to handle unknown paths and errors
 api.use((req, res, next) => {
-    const error = new Error('File Not Found');
-    error.status = 404;
-    next(error);
+    res.status(405).json({});
 })
 
 // export

@@ -57,9 +57,9 @@ router.post('/write', async (req, res, next) => {
             } catch (err) {
                 console.log('Inside ride of db');
                 console.log(err);
-                const error = new Error('500 Bad Request');
-                error.status = 500;
-                next(error);
+                res.json({
+                    statusCode : 500
+                });
             }
         }
     } else if (action == 2) {
@@ -73,9 +73,9 @@ router.post('/write', async (req, res, next) => {
             } catch (err) {
                 console.log('Inside action 2 user db');
                 console.log(err);
-                const error = new Error('400 Bad Request');
-                error.statusCode = 400;
-                next(error);
+                res.status(400).json({
+                    statusCode : 400
+                });
             }
         } else if(table == 'ride')
         {
@@ -88,9 +88,9 @@ router.post('/write', async (req, res, next) => {
             } catch (err) {
                 console.log('Inside action 2 user db');
                 console.log(err);
-                const error = new Error('400 Bad Request');
-                error.statusCode = 400;
-                next(error);
+                res.status(400).json({
+                    statusCode : 400
+                });
             }
         }
     } else if(action == 6){
@@ -103,9 +103,9 @@ router.post('/write', async (req, res, next) => {
                 });
             } catch(err){
                 console.log(err);
-                const error = new Error('400 Bad Request');
-                error.statusCode = 400;
-                next(error);
+                res.status(400).json({
+                    statusCode : 400
+                });
             }
         }
     }
@@ -147,12 +147,16 @@ router.post('/read', async (req, res, next) => {
             res.status(200).json(result);
         } catch (err) {
             console.log(err);
-            const error = new Error('400 Bad Request');
-            error.statusCode = 400;
-            next(error);
+            res.status(400).json({
+                statusCode : 400
+            });
         }
     }
 
+});
+
+router.use((req,res,next) => {
+    res.status(405).json({});
 });
 
 //

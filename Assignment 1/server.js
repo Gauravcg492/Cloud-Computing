@@ -36,9 +36,7 @@ server.use('/api/v1',apiV1);
 
 // handling bad paths/errors
 server.use((req,res,next) => {
-    const error = new Error('405 Bad Method');
-    error.status = 405;
-    next(error);
+    res.status(405).json({});
 });
 
 server.use((error, req,res,next) => {

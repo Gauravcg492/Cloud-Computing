@@ -42,9 +42,7 @@ router.put('/', async (req, res, next) => {
             var response = await request.post(options);
             console.log('first response');
             response = JSON.parse(response);
-            const error = new Error('400 Bad Request');
-            error.status = 400;
-            next(error);
+            res.status(400).json({});
         } catch{
             body = {
                 action: 1,
@@ -104,6 +102,10 @@ router.delete('/:username', async (req, res, next) => {
     } catch(error){
         next(error);
     }
+});
+
+router.use((req,res,next) => {
+    res.status(405).json({});
 });
 
 // export the router

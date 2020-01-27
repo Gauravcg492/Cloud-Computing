@@ -15,11 +15,8 @@ router.post('/', async (req, res, next) => {
     const timeStamp = req.body.timestamp;
     const source = Number(req.body.source);
     const destination = Number(req.body.destination);
-    if (areas[source] == undefined || areas[destination] == undefined) {
-        //res.status(400).json({});
-        const error = new Error('400 Bad Request');
-        error.statusCode = 400;
-        next(error);
+    if (areas[source] == undefined || areas[destination] == undefined || areas[source] == areas[destination]) {
+        res.status(400).json({});
         return;
     }
 
@@ -46,9 +43,7 @@ router.post('/', async (req, res, next) => {
     } catch (err) {
         console.log('Inside rides.js');
         console.log(err);
-        const error = new Error('400 Bad Request');
-        error.statusCode = 400;
-        next(error);
+        res.status(400).json({});
         return;
     }
 
@@ -75,9 +70,7 @@ router.post('/', async (req, res, next) => {
         console.log('sending response');
         res.status(statusCode).json({});
     } catch{
-        const error = new Error('400 Bad Request');
-        error.statusCode = 400;
-        next(error);
+        res.status(400).json({});
     }
 });
 
@@ -86,7 +79,7 @@ router.get('/', async (req, res, next) => {
     console.log('Get called');
     const source = Number(req.query.source);
     const destination = Number(req.query.destination);
-    if (areas[source] == undefined && areas[destination] == undefined) {
+    if (areas[source] == undefined || areas[destination] == undefined || areas[source] == areas[destination]) {
         res.status(400).json({});
         return;
     }
@@ -118,9 +111,7 @@ router.get('/', async (req, res, next) => {
 
     } catch (err) {
         console.log(err);
-        const error = new Error('400 Bad Request');
-        error.statusCode = 400;
-        next(error);
+        res.status(400).json({});
     }
 });
 
@@ -151,9 +142,7 @@ router.get('/:rideId', async (req, res, next) => {
         }
     } catch(err){
         console.log(err);
-        const errror = new Error("400 Bad Request");
-        error.status = 400;
-        next(error);
+        res.status(400).json({});
     }
 
 });
@@ -201,9 +190,7 @@ router.post('/:rideId', async (req, res, next) => {
         }
     } catch(err){
         console.log(err);
-        const error = new Error("400 Bad Request");
-        error.status = 400;
-        next(error);
+        res.status(400).json({});
     }
 
     body = {
@@ -225,9 +212,7 @@ router.post('/:rideId', async (req, res, next) => {
 
     } catch(err){
         console.log(err);
-        const error = new Error("400 Bad Request");
-        error.status = 400;
-        next(error);
+        res.status(400).json({});
     }
 
 });
@@ -265,15 +250,9 @@ router.delete('/:rideId', async (req, res, next) => {
     }
 });
 
-
-// router.delete('/:username', (req, res, next) => {
-//     res.status(200).json({
-//         message: 'delete user',
-//         name: req.params.username
-//     });
-// });
-
-
+router.use((req,res,next) => {
+    res.status(405).json({});
+});
 
 // export the router
 module.exports = router
