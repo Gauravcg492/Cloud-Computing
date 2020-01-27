@@ -17,6 +17,8 @@ router.post('/', async (req, res, next) => {
     const destination = Number(req.body.destination);
     if (areas[source] == undefined || areas[destination] == undefined) {
         //res.status(400).json({});
+        const error = new Error('400 Bad Request');
+        error.statusCode = 400;
         next(error);
         return;
     }
