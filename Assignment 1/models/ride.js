@@ -13,7 +13,7 @@ const rideSchema = mongoose.Schema({
         required : true,
     },
     timestamp : {
-        type : String,
+        type : Date,
         required : true
     },
     source : {

@@ -50,7 +50,7 @@ router.post('/', async (req, res, next) => {
     body = {
         action: 1,
         table: "ride",
-        values: [username, timeStamp, source, destination, [username]]
+        values: [username, timeStamp, source, destination, []]
     };
     options = {
         url: 'http://localhost:80/api/v1/db/write',
