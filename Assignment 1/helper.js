@@ -19,11 +19,18 @@ exports.extractDate = function(sdate){
 }
 
 exports.formatDate = function(idate){
-    var sdate = date.split(" ");
-    var  date = sdate[0].split("/");
-    var time= sdate[1].split(":");
-    sdate[0] = date[1]+'-'+date[0]+'-'+date[2];
-    sdate[1] = time[2]+'-'+time[1]+'-'+time[0];
-    sdate =sdate.join(':');
+    var date = idate.getDate().toString() + '-' + (idate.getMonth() + 1).toString() + '-' + idate.getFullYear().toString();
+    var time = idate.getSeconds().toString + '-' + idate.getMinutes().toString() + '-' + idate.getHours().toString();
+    var sdate = date + ":" + time;
+
     return sdate;
+}
+
+exports.formatResponse = function(response){
+    for(var ride in response){
+        ride.created_by = ride.username;
+        delete ride.username;
+        ride.timestamp = formatDate(timestamp);
+    }
+    return response;
 }

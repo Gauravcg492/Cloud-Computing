@@ -2,6 +2,7 @@
 const express = require('express');
 const request = require('request-promise');
 const areas = require("../constants");
+const helper = require("../helper");
 
 //variables
 const router = express.Router();
@@ -12,7 +13,7 @@ const router = express.Router();
 router.post('/', async (req, res, next) => {
     // getting the request body
     const username = req.body.created_by;
-    const timeStamp = req.body.timestamp;
+    const timeStamp = helper.extractDate(req.body.timestamp);
     const source = Number(req.body.source);
     const destination = Number(req.body.destination);
     if (areas[source] == undefined || areas[destination] == undefined || areas[source] == areas[destination]) {
@@ -79,6 +80,7 @@ router.get('/', async (req, res, next) => {
     console.log('Get called');
     const source = Number(req.query.source);
     const destination = Number(req.query.destination);
+    const currentDate = new Date();
     if (areas[source] == undefined || areas[destination] == undefined || areas[source] == areas[destination]) {
         res.status(400).json({});
         return;
@@ -88,7 +90,10 @@ router.get('/', async (req, res, next) => {
         table: 'ride',
         where: {
             source: source,
-            destination: destination
+            destination: destination,
+            validUntil : {
+                '$gte' : currentDate
+            }
         }
     };
     const options = {
@@ -104,6 +109,7 @@ router.get('/', async (req, res, next) => {
         console.log('Inside get ride');
         console.log(response);
         if (response.length != 0) {
+            response = helper.formatResponse(response);
             res.status(200).json(response);
         } else {
             res.status(400).json({});
@@ -138,6 +144,7 @@ router.get('/:rideId', async (req, res, next) => {
         if(Object.keys(response).length == 0){
             res.status(400).json({});
         } else{
+            response.timeStamp = helper.formatDate(timestamp);
             res.status(200).json(response);
         }
     } catch(err){
