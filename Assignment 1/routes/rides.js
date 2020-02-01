@@ -144,7 +144,8 @@ router.get('/:rideId', async (req, res, next) => {
         if(Object.keys(response).length == 0){
             res.status(400).json({});
         } else{
-            response.timeStamp = helper.formatDate(timestamp);
+            console.log(response.timestamp);
+            response.timestamp = helper.formatDate(response.timestamp);
             res.status(200).json(response);
         }
     } catch(err){

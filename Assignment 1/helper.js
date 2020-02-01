@@ -19,10 +19,11 @@ exports.extractDate = function(sdate){
 }
 
 exports.formatDate = function(idate){
+    console.log(typeof(idate));
+    idate = new Date(idate);
     var date = idate.getDate().toString() + '-' + (idate.getMonth() + 1).toString() + '-' + idate.getFullYear().toString();
-    var time = idate.getSeconds().toString + '-' + idate.getMinutes().toString() + '-' + idate.getHours().toString();
+    var time = idate.getSeconds().toString() + '-' + idate.getMinutes().toString() + '-' + idate.getHours().toString();
     var sdate = date + ":" + time;
-
     return sdate;
 }
 
