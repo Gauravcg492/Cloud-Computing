@@ -16,7 +16,7 @@ router.post('/', async (req, res, next) => {
     const timeStamp = helper.extractDate(req.body.timestamp);
     const source = Number(req.body.source);
     const destination = Number(req.body.destination);
-    if (areas[source] == undefined || areas[destination] == undefined || areas[source] == areas[destination]) {
+    if (areas[source] == undefined || areas[destination] == undefined || areas[source] == areas[destination] || helper.isInvalid(timeStamp)) {
         res.status(400).json({});
         return;
     }
@@ -165,7 +165,10 @@ router.post('/:rideId', async (req, res, next) => {
         action : 4,
         table : 'ride',
         where : {
-            rideId : rideId
+            rideId : rideId,
+            validUntil : {
+                '$gte' : currentDate
+            }
         }
     };
     var options = {
@@ -248,11 +251,7 @@ router.delete('/:rideId', async (req, res, next) => {
         var response = await request.post(options);
         console.log('delete response');
         console.log(response);
-        if(response.deletedCount > 0){
-            res.status(200).json({});
-        } else{
-            res.status(400).json({});
-        }
+        res.status(response.statusCode).json({});
     } catch(error){
         next(error);
     }

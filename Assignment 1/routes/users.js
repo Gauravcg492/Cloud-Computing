@@ -77,6 +77,32 @@ router.put('/', async (req, res, next) => {
 // 2.Remove user
 router.delete('/:username', async (req, res, next) => {
     const username = req.params.username;
+    console.log('in delete');
+    try{
+        var response = await request.post({
+            url : 'http://localhost:80/api/v1/db/read',
+            body : JSON.stringify({
+                table : 'ride',
+                action : 2,
+                where : {
+                    created_by : username
+                }
+            }), 
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        response = JSON.parse(response);
+        console.log(response);
+        if(response.length > 0){
+            console.log('sending response');
+            res.status(400).json({});
+            return;
+        }
+    }catch(err){
+        console.log(err);
+    }
+    
 
     var body = {
         table: 'user',
@@ -95,12 +121,13 @@ router.delete('/:username', async (req, res, next) => {
     };
 
     try{
-        var response = await request.post(options);
+        var response = JSON.parse(await request.post(options));
         console.log('delete response');
         console.log(response);
-        res.status(200).json({});
+        res.status(response.statusCode).json({});
     } catch(error){
-        next(error);
+        console.log(error);
+        res.status(400).json({});
     }
 });
 

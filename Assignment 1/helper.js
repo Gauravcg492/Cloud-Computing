@@ -18,11 +18,19 @@ exports.extractDate = function(sdate){
     return ndate;   
 }
 
+exports.isInvalid = function(date){
+    ndate = new Date(date);
+    if(ndate.getMonth() + 1 != date.slice(0,2)){
+        return true;
+    }
+    return false;
+}
+
 exports.formatDate = function(idate){
     console.log(typeof(idate));
     idate = new Date(idate);
-    var date = idate.getDate().toString() + '-' + (idate.getMonth() + 1).toString() + '-' + idate.getFullYear().toString();
-    var time = idate.getSeconds().toString() + '-' + idate.getMinutes().toString() + '-' + idate.getHours().toString();
+    var date = ("0" + idate.getDate()).slice(-2) + '-' + ("0" + (idate.getMonth() + 1)).slice(-2) + '-' + ("000" + idate.getFullYear()).slice(-4);
+    var time = ("0" + idate.getSeconds()).slice(-2) + '-' + ("0" + idate.getMinutes()).slice(-2) + '-' + ("0" + idate.getHours()).slice(-2);
     var sdate = date + ":" + time;
     return sdate;
 }
