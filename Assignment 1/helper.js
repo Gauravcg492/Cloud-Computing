@@ -28,6 +28,7 @@ exports.isInvalid = function(date){
 
 exports.formatDate = function(idate){
     console.log(typeof(idate));
+    console.log(idate);
     idate = new Date(idate);
     var date = ("0" + idate.getDate()).slice(-2) + '-' + ("0" + (idate.getMonth() + 1)).slice(-2) + '-' + ("000" + idate.getFullYear()).slice(-4);
     var time = ("0" + idate.getSeconds()).slice(-2) + '-' + ("0" + idate.getMinutes()).slice(-2) + '-' + ("0" + idate.getHours()).slice(-2);
@@ -36,10 +37,11 @@ exports.formatDate = function(idate){
 }
 
 exports.formatResponse = function(response){
-    for(var ride in response){
-        ride.created_by = ride.username;
-        delete ride.username;
-        ride.timestamp = formatDate(timestamp);
+    for(var i = 0; i < response.length; i++){
+        console.log(response[i]);
+        response[0]['username'] = response[0].created_by;
+        delete response[0].created_by;
+        response[0].timestamp = this.formatDate(response[0].timestamp);
     }
     return response;
 }

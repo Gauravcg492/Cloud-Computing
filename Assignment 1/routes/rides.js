@@ -20,7 +20,8 @@ router.post('/', async (req, res, next) => {
         res.status(400).json({});
         return;
     }
-
+    console.log('timestamp:');
+    console.log(timeStamp);
     // TODO validate
     var body = {
         table: 'user',
@@ -91,7 +92,7 @@ router.get('/', async (req, res, next) => {
         where: {
             source: source,
             destination: destination,
-            validUntil : {
+            timestamp : {
                 '$gte' : currentDate
             }
         }
@@ -166,7 +167,7 @@ router.post('/:rideId', async (req, res, next) => {
         table : 'ride',
         where : {
             rideId : rideId,
-            validUntil : {
+            timestamp : {
                 '$gte' : currentDate
             }
         }
