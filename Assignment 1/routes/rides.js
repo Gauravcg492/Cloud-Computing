@@ -64,10 +64,9 @@ router.post('/', async (req, res, next) => {
     };
     try {
         console.log('Writing ride details');
-        var response = await request.post(options);
+        var response = JSON.parse(await request.post(options));
         console.log('Write complete');
         console.log(response);
-        response = JSON.parse(response);
         const statusCode = response.statusCode;
         console.log('sending response');
         res.status(statusCode).json({});
@@ -105,8 +104,7 @@ router.get('/', async (req, res, next) => {
         }
     };
     try {
-        var response = await request.post(options);
-        response = JSON.parse(response);
+        var response = JSON.parse(await request.post(options));
         console.log('Inside get ride');
         console.log(response);
         if (response.length != 0) {
@@ -140,8 +138,7 @@ router.get('/:rideId', async (req, res, next) => {
         }
     };
     try{
-        var response = await request.post(options);
-        response = JSON.parse(response);
+        var response = JSON.parse(await request.post(options));
         if(Object.keys(response).length == 0){
             res.status(400).json({});
         } else{
@@ -159,8 +156,13 @@ router.get('/:rideId', async (req, res, next) => {
 // 6. Join existing ride
 router.post('/:rideId', async (req, res, next) => {
     // get request body
+    console.log('request sent');
+    console.log(req.body);
     const username = req.body.username;
     const rideId = req.params.rideId;
+    const currentDate = new Date();
+    console.log('username from req');
+    console.log(username);
 
     var body = {
         action : 4,
@@ -169,6 +171,9 @@ router.post('/:rideId', async (req, res, next) => {
             rideId : rideId,
             timestamp : {
                 '$gte' : currentDate
+            },
+            created_by : {
+                '$ne' : username
             }
         }
     };
@@ -180,9 +185,10 @@ router.post('/:rideId', async (req, res, next) => {
         }
     }
     try{
-        var response = await request.post(options);
-        response = JSON.parse(response);
-        if(response.length == 0){
+        var response = JSON.parse(await request.post(options));
+        console.log('After checks in joining');
+        console.log(response);
+        if(response.length == 0 || response.statusCode === 400){
             res.status(400).json({});
             return;
         }
@@ -192,9 +198,10 @@ router.post('/:rideId', async (req, res, next) => {
                 username : username
             }
         };
+        console.log('Inside first try');
+        console.log(body);
         options.body = JSON.stringify(body);
-        response = await request.post(options);
-        response = JSON.parse(response);
+        response = JSON.parse(await request.post(options));
         const statusCode = response.statusCode;
         if(statusCode != 200){
             res.status(400).json({});
@@ -203,6 +210,7 @@ router.post('/:rideId', async (req, res, next) => {
     } catch(err){
         console.log(err);
         res.status(400).json({});
+        return;
     }
 
     body = {
@@ -213,12 +221,13 @@ router.post('/:rideId', async (req, res, next) => {
             rideId : rideId
         }
     };
+    console.log('sending to ride');
+    console.log(body);
     options.url = 'http://localhost:80/api/v1/db/write';
     options.body = JSON.stringify(body);
 
     try{
-        var response = await request.post(options);
-        response = JSON.parse(response);
+        var response = JSON.parse(await request.post(options));
         const statusCode = response.statusCode;
         res.status(statusCode).json({});
 
@@ -249,7 +258,7 @@ router.delete('/:rideId', async (req, res, next) => {
     };
 
     try{
-        var response = await request.post(options);
+        var response = JSON.parse(await request.post(options));
         console.log('delete response');
         console.log(response);
         res.status(response.statusCode).json({});

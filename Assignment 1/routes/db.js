@@ -94,9 +94,15 @@ router.post('/write', async (req, res, next) => {
             try {
                 const response = await Ride.deleteOne(req.body.where);
                 console.log(response);
-                res.status(200).json({
-                    statusCode : 200
-                });
+                if(response.deletedCount > 0){
+                    res.status(200).json({
+                        statusCode : 200
+                    });
+                }  else{
+                    res.status(200).json({
+                        statusCode : 400
+                    });
+                } 
             } catch (err) {
                 console.log('Inside action 2 user db');
                 console.log(err);
@@ -108,11 +114,17 @@ router.post('/write', async (req, res, next) => {
     } else if(action == 6){
         if(table == 'ride'){
             try{
-                const response = await Ride.updateOne(req.body.where,{ $push : {users : req.body.users}});
+                const response = await Ride.updateOne(req.body.where,{ $addToSet : {users : req.body.users}});
                 console.log(response);
-                res.status(200).json({
-                    statusCode : 200
-                });
+                if(response.nModified == 0){
+                    res.json({
+                        statusCode : 400
+                    });
+                }else{
+                    res.status(200).json({
+                        statusCode : 200
+                    });
+                }                
             } catch(err){
                 console.log(err);
                 res.status(400).json({
@@ -134,6 +146,7 @@ router.post('/read', async (req, res, next) => {
         console.log('Reading db');
         try {
             var result = await User.findOne(req.body.where);
+            console.log(result);
             console.log(result.username);
             res.status(200).json({
                 statusCode: 200
@@ -163,7 +176,7 @@ router.post('/read', async (req, res, next) => {
             res.status(200).json(result);
         } catch (err) {
             console.log(err);
-            res.status(400).json({
+            res.status(200).json({
                 statusCode : 400
             });
         }
