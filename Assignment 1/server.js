@@ -44,7 +44,7 @@ server.use((error, req,res,next) => {
     res.json({});
 });
 
-// Listening on port 80
+// Listening on port 8080
 server.listen(80,function(){
     console.log('Listening on port 80...');
-})
+});

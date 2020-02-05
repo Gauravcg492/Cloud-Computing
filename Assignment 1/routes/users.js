@@ -5,7 +5,7 @@ const request = require('request-promise');
 
 //variables
 const router = express.Router();
-
+const serverName = process.env.SERVER;
 // setting routes
 // 1. Add user
 router.put('/', async (req, res, next) => {
@@ -30,7 +30,7 @@ router.put('/', async (req, res, next) => {
             }
         };
         var options = {
-            url: 'http://localhost:80/api/v1/db/read',
+            url: serverName + '/api/v1/db/read',
             body: JSON.stringify(body),
             method: 'POST',
             headers: {
@@ -50,7 +50,7 @@ router.put('/', async (req, res, next) => {
                 values: [username, password]
             };
             options = {
-                url: 'http://localhost:80/api/v1/db/write',
+                url: serverName + '/api/v1/db/write',
                 method: 'POST',
                 body: JSON.stringify(body),
                 headers: {
@@ -80,7 +80,7 @@ router.delete('/:username', async (req, res, next) => {
     console.log('in delete');
     try{
         var response = await request.post({
-            url : 'http://localhost:80/api/v1/db/read',
+            url : serverName + '/api/v1/db/read',
             body : JSON.stringify({
                 table : 'ride',
                 action : 2,
@@ -112,7 +112,7 @@ router.delete('/:username', async (req, res, next) => {
         }
     };
     var options = {
-        url: 'http://localhost:80/api/v1/db/write',
+        url: serverName + '/api/v1/db/write',
         body: JSON.stringify(body),
         method: 'POST',
         headers: {

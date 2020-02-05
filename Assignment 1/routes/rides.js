@@ -6,7 +6,7 @@ const helper = require("../helper");
 
 //variables
 const router = express.Router();
-
+const serverName = process.env.SERVER;
 
 // setting routes
 // 3. Create new ride
@@ -31,7 +31,7 @@ router.post('/', async (req, res, next) => {
     };
 
     var options = {
-        url: 'http://localhost:80/api/v1/db/read',
+        url: serverName + '/api/v1/db/read',
         body: JSON.stringify(body),
         method: 'POST',
         headers: {
@@ -55,7 +55,7 @@ router.post('/', async (req, res, next) => {
         values: [username, timeStamp, source, destination, []]
     };
     options = {
-        url: 'http://localhost:80/api/v1/db/write',
+        url: serverName + '/api/v1/db/write',
         body: JSON.stringify(body),
         method: 'POST',
         headers: {
@@ -97,7 +97,7 @@ router.get('/', async (req, res, next) => {
         }
     };
     const options = {
-        url: 'http://localhost:80/api/v1/db/read',
+        url: serverName + '/api/v1/db/read',
         body: JSON.stringify(body),
         headers: {
             'Content-Type': 'application/json'
@@ -131,7 +131,7 @@ router.get('/:rideId', async (req, res, next) => {
         }
     };
     var options = {
-        url: 'http://localhost:80/api/v1/db/read',
+        url: serverName + '/api/v1/db/read',
         body: JSON.stringify(body),
         headers: {
             'Content-Type': 'application/json'
@@ -178,7 +178,7 @@ router.post('/:rideId', async (req, res, next) => {
         }
     };
     var options = {
-        url : 'http://localhost:80/api/v1/db/read',
+        url: serverName + '/api/v1/db/read',
         body: JSON.stringify(body),
         headers: {
             'Content-Type': 'application/json'
@@ -223,7 +223,7 @@ router.post('/:rideId', async (req, res, next) => {
     };
     console.log('sending to ride');
     console.log(body);
-    options.url = 'http://localhost:80/api/v1/db/write';
+    options.url = serverName + '/api/v1/db/write';
     options.body = JSON.stringify(body);
 
     try{
@@ -250,7 +250,7 @@ router.delete('/:rideId', async (req, res, next) => {
         }
     };
     var options = {
-        url: 'http://localhost:80/api/v1/db/write',
+        url: serverName + '/api/v1/db/write',
         body: JSON.stringify(body),
         headers: {
             'Content-Type': 'application/json'
