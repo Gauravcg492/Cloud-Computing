@@ -2,6 +2,7 @@
 const express = require('express');
 const helper = require('../helper');
 const request = require('request-promise');
+require('dotenv/config');
 
 //variables
 const router = express.Router();

@@ -3,6 +3,7 @@ const express = require('express');
 const request = require('request-promise');
 const areas = require("../constants");
 const helper = require("../helper");
+require('dotenv/config');
 
 //variables
 const router = express.Router();
@@ -111,7 +112,7 @@ router.get('/', async (req, res, next) => {
             response = helper.formatResponse(response);
             res.status(200).json(response);
         } else {
-            res.status(400).json({});
+            res.status(204).json({});
         }
 
     } catch (err) {
