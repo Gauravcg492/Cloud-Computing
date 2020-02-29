@@ -24,17 +24,12 @@ router.post('/', async (req, res, next) => {
     console.log('timestamp:');
     console.log(timeStamp);
     // TODO validate
-    var body = {
-        table: 'user',
-        where: {
-            username: username
-        }
-    };
+    var body = {};
 
     var options = {
-        url: serverName + '/api/v1/db/read',
+        url: serverName + '/api/v1/users',
         body: JSON.stringify(body),
-        method: 'POST',
+        method: 'GET',
         headers: {
             'Content-Type': 'application/json'
         }
@@ -43,6 +38,11 @@ router.post('/', async (req, res, next) => {
     try {
         console.log('Checking for user detail');
         var response = await request.post(options);
+        response = JSON.parse(response);
+        if(!response.includes(username)){
+            res.status(400).json({})
+            return;
+        }
     } catch (err) {
         console.log('Inside rides.js');
         console.log(err);
@@ -179,8 +179,9 @@ router.post('/:rideId', async (req, res, next) => {
         }
     };
     var options = {
-        url: serverName + '/api/v1/db/read',
+        url: serverName + '/api/v1/users',
         body: JSON.stringify(body),
+        method: 'GET',
         headers: {
             'Content-Type': 'application/json'
         }
@@ -193,18 +194,13 @@ router.post('/:rideId', async (req, res, next) => {
             res.status(400).json({});
             return;
         }
-        body = {
-            table : 'user',
-            where : {
-                username : username
-            }
-        };
+        body = {};
         console.log('Inside first try');
         console.log(body);
         options.body = JSON.stringify(body);
         response = JSON.parse(await request.post(options));
-        const statusCode = response.statusCode;
-        if(statusCode != 200){
+        if(!response.include(username))
+        {
             res.status(400).json({});
             return;
         }
@@ -226,6 +222,7 @@ router.post('/:rideId', async (req, res, next) => {
     console.log(body);
     options.url = serverName + '/api/v1/db/write';
     options.body = JSON.stringify(body);
+    options.method = 'POST'
 
     try{
         var response = JSON.parse(await request.post(options));

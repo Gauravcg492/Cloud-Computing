@@ -79,7 +79,7 @@ router.put('/', async (req, res, next) => {
 router.delete('/:username', async (req, res, next) => {
     const username = req.params.username;
     console.log('in delete');
-    try{
+    /*try{
         var response = await request.post({
             url : serverName + '/api/v1/db/read',
             body : JSON.stringify({
@@ -102,7 +102,7 @@ router.delete('/:username', async (req, res, next) => {
         }
     }catch(err){
         console.log(err);
-    }
+    }*/
     
 
     var body = {
