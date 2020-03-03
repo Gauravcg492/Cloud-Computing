@@ -1,7 +1,6 @@
 // dependencies
 const express = require('express');
 const usersHandler = require('./users')
-const ridesHander = require('./rides')
 const dbHandler = require('./db')
 
 // variables

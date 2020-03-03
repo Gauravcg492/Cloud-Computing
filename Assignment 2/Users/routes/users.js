@@ -31,7 +31,7 @@ router.put('/', async (req, res, next) => {
             }
         };
         var options = {
-            url: serverName + '/api/v1/db/read',
+            url: serverName + ':8080/api/v1/db/read',
             body: JSON.stringify(body),
             method: 'POST',
             headers: {
@@ -51,7 +51,7 @@ router.put('/', async (req, res, next) => {
                 values: [username, password]
             };
             options = {
-                url: serverName + '/api/v1/db/write',
+                url: serverName + ':8080/api/v1/db/write',
                 method: 'POST',
                 body: JSON.stringify(body),
                 headers: {
@@ -113,7 +113,7 @@ router.delete('/:username', async (req, res, next) => {
         }
     };
     var options = {
-        url: serverName + '/api/v1/db/write',
+        url: serverName + ':8080/api/v1/db/write',
         body: JSON.stringify(body),
         method: 'POST',
         headers: {
@@ -133,18 +133,22 @@ router.delete('/:username', async (req, res, next) => {
 });
 
 
-router.get('/',(req,res,next) => {
+router.get('/', async (req,res,next) => {
     try{
+        console.log("Sending details");
         var response = await request.post({
-            url : serverName + '/api/v1/db/read',
+            url : serverName + ':8080/api/v1/db/read',
             body : JSON.stringify({
                 table : 'user',
                 action : 0,
             }), 
         });
         response = JSON.parse(response);
+        console.log(response);
         if(response.length > 0){
             res.status(200).json(response);
+        }else{
+            res.status(200).json([]);
         }        
         return;
     }

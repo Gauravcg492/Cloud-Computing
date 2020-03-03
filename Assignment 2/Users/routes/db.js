@@ -108,12 +108,15 @@ router.post('/read', async (req, res, next) => {
 });
 
 router.post('clear',async (req,res,next) => {
+    console.log("Clearing db");
     try{
         var result = await User.remove({});
         res.status(200).json({});
+        console.log("success");
     }
     catch{
         res.status(400).json({});
+        console.log("Failure");
     }
 });
 

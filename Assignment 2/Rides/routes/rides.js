@@ -27,7 +27,7 @@ router.post('/', async (req, res, next) => {
     var body = {};
 
     var options = {
-        url: serverName + '/api/v1/users',
+        url: serverName + ':8080/api/v1/users',
         body: JSON.stringify(body),
         method: 'GET',
         headers: {
@@ -56,7 +56,7 @@ router.post('/', async (req, res, next) => {
         values: [username, timeStamp, source, destination, []]
     };
     options = {
-        url: serverName + '/api/v1/db/write',
+        url: serverName + ':8000/api/v1/db/write',
         body: JSON.stringify(body),
         method: 'POST',
         headers: {
@@ -98,7 +98,7 @@ router.get('/', async (req, res, next) => {
         }
     };
     const options = {
-        url: serverName + '/api/v1/db/read',
+        url: serverName + ':8000/api/v1/db/read',
         body: JSON.stringify(body),
         headers: {
             'Content-Type': 'application/json'
@@ -132,7 +132,7 @@ router.get('/:rideId', async (req, res, next) => {
         }
     };
     var options = {
-        url: serverName + '/api/v1/db/read',
+        url: serverName + ':8000/api/v1/db/read',
         body: JSON.stringify(body),
         headers: {
             'Content-Type': 'application/json'
@@ -179,9 +179,9 @@ router.post('/:rideId', async (req, res, next) => {
         }
     };
     var options = {
-        url: serverName + '/api/v1/users',
+        url: serverName + ':8000/api/v1/db/read',
         body: JSON.stringify(body),
-        method: 'GET',
+        method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         }
@@ -198,6 +198,8 @@ router.post('/:rideId', async (req, res, next) => {
         console.log('Inside first try');
         console.log(body);
         options.body = JSON.stringify(body);
+	options.url = serverName + ':8080/api/v1/users';
+	options.method = 'GET';
         response = JSON.parse(await request.post(options));
         if(!response.include(username))
         {
@@ -220,7 +222,7 @@ router.post('/:rideId', async (req, res, next) => {
     };
     console.log('sending to ride');
     console.log(body);
-    options.url = serverName + '/api/v1/db/write';
+    options.url = serverName + ':8000/api/v1/db/write';
     options.body = JSON.stringify(body);
     options.method = 'POST'
 
@@ -248,7 +250,7 @@ router.delete('/:rideId', async (req, res, next) => {
         }
     };
     var options = {
-        url: serverName + '/api/v1/db/write',
+        url: serverName + ':8000/api/v1/db/write',
         body: JSON.stringify(body),
         headers: {
             'Content-Type': 'application/json'

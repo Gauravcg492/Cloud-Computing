@@ -1,0 +1,26 @@
+version: "2"
+services:
+  rserver:
+    container_name: rides
+    image: rides:latest
+    restart: always
+    build: ./Rides
+    ports:
+      - "8000:80"
+    links:
+      - rmongo
+  rmongo:
+    container_name: rmongo
+    image: mongo
+  userver:
+    container_name: users
+    image: users:latest
+    restart: always
+    build: ./Users
+    ports:
+      - "8080:80"
+    links:
+      - umongo
+  umongo:
+    container_name: umongo
+    image: mongo

@@ -45,6 +45,6 @@ server.use((error, req,res,next) => {
 });
 
 // Listening on port 8080
-server.listen(8080,function(){
+server.listen(80,function(){
     console.log('Listening on port 8080...');
 });
