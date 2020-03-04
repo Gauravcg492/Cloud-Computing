@@ -135,18 +135,30 @@ router.delete('/:username', async (req, res, next) => {
 
 router.get('/', async (req,res,next) => {
     try{
-        console.log("Sending details");
-        var response = await request.post({
-            url : serverName + ':8080/api/v1/db/read',
-            body : JSON.stringify({
-                table : 'user',
-                action : 0,
-            }), 
-        });
+        console.log("Sending get details");
+        var body = {
+            table : 'user',
+            action : 0
+        };
+        var options = {
+            url: serverName + ':8080/api/v1/db/read',	
+            method: 'POST',
+            body : JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        var response = await request.post(options);
         response = JSON.parse(response);
         console.log(response);
         if(response.length > 0){
-            res.status(200).json(response);
+            var result = [];
+            for(var i=0;i<response.length;i++){
+                console.log(response[i]);
+                result.push(response[i]['username']);
+            }
+            console.log(result);
+            res.status(200).json(result);
         }else{
             res.status(200).json([]);
         }        

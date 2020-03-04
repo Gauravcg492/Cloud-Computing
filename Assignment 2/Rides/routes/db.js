@@ -119,7 +119,7 @@ router.post('/read', async (req, res, next) => {
 
 });
 
-router.post('clear',async (req,res,next) => {
+router.post('/clear',async (req,res,next) => {
     console.log("Clearing db");
     try{
         var result = await Ride.remove({});

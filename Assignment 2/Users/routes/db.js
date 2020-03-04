@@ -75,12 +75,14 @@ router.post('/read', async (req, res, next) => {
     const table = req.body.table;
     const action = req.body.action;
     
-
+    console.log('Entered read db');
+    console.log(table);
+    console.log(action);
     if (table === "user") {
         console.log('Reading db');
         if(action == 0){
             try{
-                var result = await User.find().select('username -__V');
+                var result = await User.find({}).select('username -_id');
                 console.log(result);
                 res.status(200).json(result);
                 return;
@@ -107,7 +109,7 @@ router.post('/read', async (req, res, next) => {
     }
 });
 
-router.post('clear',async (req,res,next) => {
+router.post('/clear',async (req,res,next) => {
     console.log("Clearing db");
     try{
         var result = await User.remove({});

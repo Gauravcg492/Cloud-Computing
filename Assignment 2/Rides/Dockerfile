@@ -1,9 +1,6 @@
 FROM node:latest
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
-COPY package.json /usr/src/app/
+WORKDIR /app/rides
+COPY package.json /app/rides
 RUN npm install
-COPY . /usr/src/app
-EXPOSE 8000
-ENV TEAM_NAME=CC_0012_0989_1110_1094 
-CMD ["npm","start"]
+COPY . /app/rides
+ENV TEAM_NAME=CC_0012_0989_1110_1094

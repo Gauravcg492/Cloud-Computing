@@ -5,6 +5,7 @@ services:
     image: rides:latest
     restart: always
     build: ./Rides
+    command: npm start
     ports:
       - "8000:80"
     links:
@@ -17,6 +18,7 @@ services:
     image: users:latest
     restart: always
     build: ./Users
+    command: npm start
     ports:
       - "8080:80"
     links:
