@@ -1,0 +1,13 @@
+version: "2"
+services:
+  userver:
+    container_name: users
+    restart: always
+    build: .
+    ports:
+      - "8080:80"
+    links:
+      - umongo
+  umongo:
+    container_name: umongo
+    image: mongo
