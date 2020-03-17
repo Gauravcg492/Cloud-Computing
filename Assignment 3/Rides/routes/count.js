@@ -4,7 +4,7 @@ const fs = require('fs');
 
 //variables
 const router = express.Router();
-const pathToFile = __dirname + '/data/counts.json';
+const pathToFile = '/app/rides/data/counts.json';
 
 // api to return count
 router.get('/',async (req,res,next) => {

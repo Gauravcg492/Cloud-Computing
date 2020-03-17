@@ -7,7 +7,7 @@ const fs = require('fs');
 
 // variables
 const api = express();
-const pathToFile = __dirname + '/data/counts.json';
+const pathToFile = '/app/users/data/counts.json';
 
 // to route user requests
 api.use('/users',async (req,res,next) =>{

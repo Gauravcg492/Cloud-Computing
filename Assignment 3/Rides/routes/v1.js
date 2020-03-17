@@ -7,7 +7,7 @@ const fs = require('fs');
 
 // variables
 const api = express();
-const pathToFile = __dirname + '/data/counts.json';
+const pathToFile = '/app/rides/data/counts.json';
 
 // to route ride requests
 //api.use('/rides',ridesHander);
