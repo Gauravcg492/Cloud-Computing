@@ -6,10 +6,8 @@ require('dotenv/config');
 
 //variables
 const router = express.Router();
-//const rServerName = process.env.R_SERVER;
-const uServerName = process.env.U_SERVER;
-const uPort = process.env.U_PORT;
-//const rPort = process.env.R_PORT;
+const localhost = process.env.LOCALHOST;
+const lPort = process.env.L_PORT;
 
 // setting routes
 // 1. Add user
@@ -35,7 +33,7 @@ router.put('/', async (req, res, next) => {
             }
         };
         var options = {
-            url: uServerName + ':' + uPort + '/api/v1/db/read',
+            url: localhost + ':' + lPort + '/api/v1/db/read',
             body: JSON.stringify(body),
             method: 'POST',
             headers: {
@@ -55,7 +53,7 @@ router.put('/', async (req, res, next) => {
                 values: [username, password]
             };
             options = {
-                url: uServerName + ':' + uPort + '/api/v1/db/write',
+                url: localhost + ':' + lPort + '/api/v1/db/write',
                 method: 'POST',
                 body: JSON.stringify(body),
                 headers: {
@@ -117,7 +115,7 @@ router.delete('/:username', async (req, res, next) => {
         }
     };
     var options = {
-        url: uServerName + ':' + uPort + '/api/v1/db/write',
+        url: localhost + ':' + lPort + '/api/v1/db/write',
         body: JSON.stringify(body),
         method: 'POST',
         headers: {
@@ -136,7 +134,7 @@ router.delete('/:username', async (req, res, next) => {
     }
 });
 
-
+// List all users
 router.get('/', async (req,res,next) => {
     try{
         console.log("Sending get details");
@@ -145,7 +143,7 @@ router.get('/', async (req,res,next) => {
             action : 0
         };
         var options = {
-            url: uServerName + ':' + uPort + '/api/v1/db/read',	
+            url: localhost + ':' + lPort + '/api/v1/db/read',	
             method: 'POST',
             body : JSON.stringify(body),
             headers: {

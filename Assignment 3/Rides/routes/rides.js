@@ -7,10 +7,11 @@ require('dotenv/config');
 
 //variables
 const router = express.Router();
-const rServerName = process.env.R_SERVER;
-const uServerName = process.env.U_SERVER;
-const uPort = process.env.U_PORT;
-const rPort = process.env.R_PORT;
+const serverName = process.env.SERVER;
+const port = process.env.PORT;
+const localhost = process.env.LOCALHOST;
+const lPort = process.env.L_PORT;
+const origin = '35.170.18.147'
 
 // setting routes
 // 3. Create new ride
@@ -30,12 +31,12 @@ router.post('/', async (req, res, next) => {
     var body = {};
 
     var options = {
-        url: uServerName + ':' + uPort + '/api/v1/users',
+        url: serverName + ':' + port + '/api/v1/users',
         body: JSON.stringify(body),
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
-            'Origin' : uServerName
+            'Origin' : origin
         }
     };
 
@@ -60,7 +61,7 @@ router.post('/', async (req, res, next) => {
         values: [username, timeStamp, source, destination, []]
     };
     options = {
-        url: rServerName + ':' + rPort + '/api/v1/db/write',
+        url: localhost + ':' + lPort + '/api/v1/db/write',
         body: JSON.stringify(body),
         method: 'POST',
         headers: {
@@ -102,7 +103,7 @@ router.get('/', async (req, res, next) => {
         }
     };
     const options = {
-        url: rServerName + ':' + rPort + '/api/v1/db/read',
+        url: localhost + ':' + lPort + '/api/v1/db/read',
         body: JSON.stringify(body),
         headers: {
             'Content-Type': 'application/json'
@@ -136,7 +137,7 @@ router.get('/:rideId', async (req, res, next) => {
         }
     };
     var options = {
-        url: rServerName + ':' + rPort + '/api/v1/db/read',
+        url: localhost + ':' + lPort + '/api/v1/db/read',
         body: JSON.stringify(body),
         headers: {
             'Content-Type': 'application/json'
@@ -183,12 +184,12 @@ router.post('/:rideId', async (req, res, next) => {
         }
     };
     var options = {
-        url: rServerName + ':' + rPort + '/api/v1/db/read',
+        url: localhost + ':' + lPort + '/api/v1/db/read',
         body: JSON.stringify(body),
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Origin' : uServerName
+            'Origin' : origin
         }
     }
     try{
@@ -203,7 +204,7 @@ router.post('/:rideId', async (req, res, next) => {
         console.log('Inside first try');
         console.log(body);
         options.body = JSON.stringify(body);
-	    options.url = uServerName + ':' + uPort + '/api/v1/users';
+	    options.url = serverName + ':' + port + '/api/v1/users';
 	    options.method = 'GET';
         response = JSON.parse(await request.post(options));
         if(!response.include(username))
@@ -227,10 +228,9 @@ router.post('/:rideId', async (req, res, next) => {
     };
     console.log('sending to ride');
     console.log(body);
-    options.url = rServerName + ':' + rPort + '/api/v1/db/write';
+    options.url = localhost + ':' + lPort + '/api/v1/db/write';
     options.body = JSON.stringify(body);
     options.method = 'POST';
-    options.headers['Origin'] = rServername;
 
     try{
         var response = JSON.parse(await request.post(options));
@@ -256,7 +256,7 @@ router.delete('/:rideId', async (req, res, next) => {
         }
     };
     var options = {
-        url: rServerName + ':' + rPort + '/api/v1/db/write',
+        url: localhost + ':' + lPort + '/api/v1/db/write',
         body: JSON.stringify(body),
         headers: {
             'Content-Type': 'application/json'
@@ -282,7 +282,7 @@ router.get('/count',async (req,res,next) => {
         where: {}
     };
     var options = {
-        url: rServerName + ':' + rPort + '/api/v1/db/read',
+        url: localhost + ':' + lPort + '/api/v1/db/read',
         body: JSON.stringify(body),
         headers: {
             'Content-Type': 'application/json'
