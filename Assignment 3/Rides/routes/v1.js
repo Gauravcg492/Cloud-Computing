@@ -7,13 +7,14 @@ const fs = require('fs');
 
 // variables
 const api = express();
+const pathToFile = __dirname + '/data/counts.json';
 
 // to route ride requests
 //api.use('/rides',ridesHander);
 api.use('/rides',async (req,res,next) =>{
-    var counts = JSON.parse(fs.readFileSync('../counts.json'));
+    var counts = JSON.parse(fs.readFileSync(pathToFile));
     counts.count += 1;
-    fs.writeFileSync('../counts.json',JSON.stringify(counts));
+    fs.writeFileSync(pathToFile,JSON.stringify(counts));
     next();
 },ridesHander);
 

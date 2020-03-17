@@ -4,11 +4,12 @@ const fs = require('fs');
 
 //variables
 const router = express.Router();
+const pathToFile = __dirname + '/data/counts.json';
 
 // api to return count
 router.get('/',async (req,res,next) => {
     try{
-        const counts = JSON.parse(fs.readFileSync('../counts.json'));
+        const counts = JSON.parse(fs.readFileSync(pathToFile));
         res.status(200).json(counts.count);
 
     }catch{
@@ -18,9 +19,9 @@ router.get('/',async (req,res,next) => {
 
 // to reset count
 router.delete('/', async (req,res) => {
-    var counts = JSON.parse(fs.readFileSync('../counts.json'));
+    var counts = JSON.parse(fs.readFileSync(pathToFile));
     counts.count = 0;
-    fs.writeFileSync('../counts.json',JSON.stringify(counts));
+    fs.writeFileSync(pathToFile,JSON.stringify(counts));
     res.status(200).json();
 });
 

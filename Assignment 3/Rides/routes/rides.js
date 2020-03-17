@@ -1,7 +1,7 @@
 // dependencies
 const express = require('express');
 const request = require('request-promise');
-const areas = require("../constants");
+const areas = require("../data/constants");
 const helper = require("../helper");
 require('dotenv/config');
 
