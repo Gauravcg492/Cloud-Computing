@@ -290,7 +290,7 @@ router.get('/count',async (req,res,next) => {
     };
     var result = JSON.parse(await request.post(options));
     console.log(result.length);
-    res.status(200).json(result.length);
+    res.status(200).json([result.length]);
 });
 
 router.use((req,res,next) => {

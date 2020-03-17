@@ -41,11 +41,11 @@ router.post('/write', async (req, res, next) => {
     } else if (action == 2) {
         if (table === 'user') {
             try {
-                const username = req.body.where.username;
-                var response = await Ride.updateMany({users : username}, {$pull : {users : username}});
-                console.log('Update response');
-                console.log(response);
-                response = await User.deleteOne(req.body.where);
+                //const username = req.body.where.username;
+                //var response = await Ride.updateMany({users : username}, {$pull : {users : username}});
+                //console.log('Update response');
+                //console.log(response);
+                var response = await User.deleteOne(req.body.where);
                 console.log('delete response');
                 console.log(response); 
                 if(response.deletedCount > 0){

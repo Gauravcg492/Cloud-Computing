@@ -10,10 +10,11 @@ const pathToFile = '/app/rides/data/counts.json';
 router.get('/',async (req,res,next) => {
     try{
         const counts = JSON.parse(fs.readFileSync(pathToFile));
-        res.status(200).json(counts.count);
+        res.status(200).json([counts.count]);
 
     }catch{
         console.log("Error reading file");
+        res.status(405).json({});
     }
 });
 
@@ -22,12 +23,12 @@ router.delete('/', async (req,res) => {
     var counts = JSON.parse(fs.readFileSync(pathToFile));
     counts.count = 0;
     fs.writeFileSync(pathToFile,JSON.stringify(counts));
-    res.status(200).json();
+    res.status(200).json({});
 });
 
 // voiding bad requests
 router.all('/', (req,res,next) => {
-    res.status(405).json();
+    res.status(405).json({});
 });
 
 
