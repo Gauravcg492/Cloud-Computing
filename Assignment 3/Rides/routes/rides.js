@@ -125,6 +125,27 @@ router.get('/', async (req, res, next) => {
     }
 });
 
+// Api to return total number of rides
+// placed on top due to precedence
+router.get('/count',async (req,res,next) => {
+    console.log("Inside ride count");
+    const body = {
+        table: 'ride',
+        action : 2,
+        where: {}
+    };
+    var options = {
+        url: localhost + ':' + lPort + '/api/v1/db/read',
+        body: JSON.stringify(body),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+    var result = JSON.parse(await request.post(options));
+    console.log(result.length);
+    res.status(200).json([result.length]);
+});
+
 // 5. List all details for given ride
 router.get('/:rideId', async (req, res, next) => {
     const rideId = req.params.rideId;
@@ -270,25 +291,7 @@ router.delete('/:rideId', async (req, res, next) => {
     }
 });
 
-// Api to return total number of rides
-router.get('/count',async (req,res,next) => {
-    console.log("Inside ride count");
-    const body = {
-        table: 'ride',
-        action : 2,
-        where: {}
-    };
-    var options = {
-        url: localhost + ':' + lPort + '/api/v1/db/read',
-        body: JSON.stringify(body),
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    };
-    var result = JSON.parse(await request.post(options));
-    console.log(result.length);
-    res.status(200).json([result.length]);
-});
+
 
 router.use((req,res,next) => {
     res.status(405).json({});
