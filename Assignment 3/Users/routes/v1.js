@@ -14,6 +14,7 @@ api.use('/users',async (req,res,next) =>{
     var counts = JSON.parse(fs.readFileSync(pathToFile));
     counts.count += 1;
     fs.writeFileSync(pathToFile,JSON.stringify(counts));
+    console.log('Called till users');
     next();
 },usersHandler);
 

@@ -33,7 +33,6 @@ router.post('/', async (req, res, next) => {
     var options = {
         url: serverName + ':' + port + '/api/v1/users',
         body: JSON.stringify(body),
-        method: 'GET',
         headers: {
             'Content-Type': 'application/json',
             'Origin' : origin
@@ -42,7 +41,7 @@ router.post('/', async (req, res, next) => {
 
     try {
         console.log('Checking for user detail');
-        var response = await request.post(options);
+        var response = await request.get(options);
         response = JSON.parse(response);
         if(!response.includes(username)){
             res.status(400).json({})
@@ -186,7 +185,6 @@ router.post('/:rideId', async (req, res, next) => {
     var options = {
         url: localhost + ':' + lPort + '/api/v1/db/read',
         body: JSON.stringify(body),
-        method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Origin' : origin
@@ -205,8 +203,7 @@ router.post('/:rideId', async (req, res, next) => {
         console.log(body);
         options.body = JSON.stringify(body);
 	    options.url = serverName + ':' + port + '/api/v1/users';
-	    options.method = 'GET';
-        response = JSON.parse(await request.post(options));
+        response = JSON.parse(await request.get(options));
         if(!response.include(username))
         {
             res.status(400).json({});
