@@ -1,0 +1,16 @@
+version: "1"
+services:
+  orchestrator:
+    container_name: orchestrator
+    image: orchestrator:latest
+    restart: always
+    build: ./Orchestrator
+    command: npm start
+    ports: 
+      - 80:80
+    links:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3
+    container_name: rabbitmq
