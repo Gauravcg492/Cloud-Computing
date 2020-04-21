@@ -41,8 +41,6 @@ server.use((error, req,res,next) => {
 });
 
 // Listening on port 8080
-server.listen(PORT,function(){
-    // create required queues and exchanges
-    
+server.listen(PORT, () => {
     console.log(`Listening on port ${PORT}...`);
 });
