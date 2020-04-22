@@ -11,10 +11,12 @@ router.post('/write', rabbitmq.sendToWriteQ);
 // 9. Read from db
 router.post('/read', rabbitmq.sendToReadQ);
 
-router.post('/clear',async (req,res,next) => {
+router.post('/clear', (req,res,next) => {
     console.log("Clearing db");
     // TODO send to writeQ
-});
+    req.body.action = 0;
+    next();
+}, rabbitmq.sendToWriteQ);
 
 router.use((req,res,next) => {
     res.status(405).json({});

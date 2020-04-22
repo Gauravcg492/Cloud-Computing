@@ -25,7 +25,11 @@ exports.sendToWriteQ = (req, res, next) => {
                                 if(msg.properties.correlationId === corelationId) {
                                     done = 1;
                                     reply = JSON.parse(msg.content.toString());
-                                    res.status(reply.status).json(reply.body);
+                                    if(reply.statusCode == 0){
+                                        res.status(reply.status).json({});
+                                    } else {
+                                        res.status(200).json(reply);
+                                    }                                    
                                     setTimeout(() => {
                                         connection.close();
                                         process.exit(0);
