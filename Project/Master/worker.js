@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const workers = require('./workers');
+require('dotenv/config');
 
 const worker = process.env.WORKER;
 
