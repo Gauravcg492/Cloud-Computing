@@ -18,4 +18,24 @@ services:
       - 5672:5672
       - 15672:15672
     
+  master:
+    image: master:latest
+    container_name: master
+    restart: on-failure
+    build: ./Master
+    command: sh -c "sleep 30 && npm start"
+    environment:
+      - WORKER=MASTER
+      - DB_CONNECTION=mongodb://mmongo:27017
+    entrypoint: ["sh"]
   
+  slave:
+    image: slave:latest
+    container_name: slave
+    restart: on-failure
+    build: ./Slave
+    command: sh -c "sleep 30 && npm start"
+    environment:
+      - WORKER=MASTER
+      - DB_CONNECTION=mongodb://mmongo:27017
+    entrypoint: ["sh"]

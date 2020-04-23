@@ -1,6 +1,10 @@
 const amqp = require('amqplib/callback_api');
 const User = require('./models/user.js');
 const Ride = require('./models/ride');
+const AsyncLock = require('async-lock');
+const lock = new AsyncLock();
+
+exports.key = "key_lock";
 
 exports.dbWrite = (req) => {
     const action = req.body.action;
@@ -9,8 +13,8 @@ exports.dbWrite = (req) => {
     res = {
         statusCode: 0
     }
-    if(action == 0) {
-        try{
+    if (action == 0) {
+        try {
             var result = await User.remove({});
             //res.status(200).json({});
             res.status = 200;
@@ -107,18 +111,18 @@ exports.dbWrite = (req) => {
             }
         }
     } else if (action == 6) {
-        if(table == 'ride'){
-            try{
-                const response = await Ride.updateOne(req.body.where,{ $addToSet : {users : req.body.users}});
+        if (table == 'ride') {
+            try {
+                const response = await Ride.updateOne(req.body.where, { $addToSet: { users: req.body.users } });
                 console.log(response);
-                if(response.nModified == 0){
+                if (response.nModified == 0) {
                     //res.json({ statusCode : 400 });
                     res.statusCode = 400;
-                }else{
+                } else {
                     //res.status(200).json({ statusCode : 200 });
                     res.statusCode = 200;
-                }                
-            } catch(err){
+                }
+            } catch (err) {
                 console.log(err);
                 //res.status(400).json({ statusCode : 400 });
                 res.statusCode = 400;
@@ -138,8 +142,8 @@ exports.dbRead = (req) => {
     }
     if (table === "user") {
         console.log('Reading db');
-        if(action == 0){
-            try{
+        if (action == 0) {
+            try {
                 var result = await User.find({}).select('username -_id');
                 console.log(result);
                 //res.status(200).json(result);
@@ -147,7 +151,7 @@ exports.dbRead = (req) => {
             }
             catch{
                 //res.status(200).json({});
-            }            
+            }
         } else {
             try {
                 var result = await User.findOne(req.body.where);
@@ -163,20 +167,20 @@ exports.dbRead = (req) => {
                 res.body = { statusCode: 400 };
             }
         }
-        
+
     } else if (table == 'ride') {
         console.log('Ride db read');
         var result;
         try {
-            if(action == 2){
+            if (action == 2) {
                 result = await Ride.find(req.body.where);
             }
-            if(action == 4){
+            if (action == 4) {
                 result = await Ride.find(req.body.where).select('rideId created_by timestamp -_id');
             }
-            if(action == 5){
+            if (action == 5) {
                 result = await Ride.findOne(req.body.where).select('-_id -__v');
-            }            
+            }
             console.log(result);
             //res.status(200).json(result);
             res.body = result;
@@ -234,19 +238,20 @@ exports.write = () => {
 exports.read = (val) => {
     // TODO threading
     // process listening from readQ
-    if (val) {
-        amqp.connect('amqp://rabbitmq', (err0, connection) => {
-            if (!err0) {
-                console.log('Connected successfully readQ');
-                connection.createChannel((err1, channel) => {
-                    if (!err1) {
-                        console.log("Channel created: SR");
-                        const listenQueue = 'readQ';
-                        channel.assertQueue(listenQueue, {
-                            durable: true
-                        });
-                        channel.prefetch(1);
-                        channel.consume(listenQueue, (msg) => {
+    amqp.connect('amqp://rabbitmq', (err0, connection) => {
+        if (!err0) {
+            console.log('Connected successfully readQ');
+            connection.createChannel((err1, channel) => {
+                if (!err1) {
+                    // read part
+                    console.log("Channel created: SR");
+                    const listenQueue = 'readQ';
+                    channel.assertQueue(listenQueue, {
+                        durable: true
+                    });
+                    channel.prefetch(1);
+                    channel.consume(listenQueue, (msg) => {
+                        lock.acquire(this.key, (cb) => {
                             req = JSON.parse(msg.content.toString());
                             res = this.dbRead(req);
                             bufferedRes = Buffer.from(JSON.stringify(res));
@@ -255,45 +260,81 @@ exports.read = (val) => {
                                 correlationId: msg.properties.correlationId
                             });
                             channel.ack(msg);
+                        }, (err, ret) => {
+                            if (err) {
+                                console.log("Error occured");
+                                console.log(err);
+                            }
                         });
-                    }
-                });
-            }
-        });
-    } else { // process listening from syncQ
-        amqp.connect('amqp://rabbitmq', (err0, connection) => {
-            if (!err0) {
-                console.log("Successfully connected synQ");
+                    });
+                    //sync part
+                    console.log("Entering SS part");
+                    channel.assertExchange(exchangeName, 'fanout', {
+                        durable: true
+                    });
+                    channel.assertQueue('', {
+                        exclusive: true
+                    }, (err2, q) => {
+                        if (!err2) {
+                            channel.bindQueue(q.queue, exchangeName, '');
 
-                connection.createChannel((err1, channel) => {
-                    if (!err1) {
-                        console.log("Channel created: SS");
-                        const exchangeName = 'syncQ';
-                        channel.assertExchange(exchangeName, 'fanout', {
-                            durable: true
-                        });
-
-                        channel.assertQueue('', {
-                            exclusive: true
-                        }, (err2, q) => {
-                            if (!err2) {
-                                channel.bindQueue(q.queue, exchangeName, '');
-
-                                channel.consume(q.queue, (msg) => {
+                            channel.consume(q.queue, (msg) => {
+                                acquire.lock(this.key, (cb) => {
                                     req = JSON.parse(msg.content.toString());
                                     res = this.dbWrite(req);
                                     while (res.statusCode != 200 || res.statusCode != 201 || (res.statusCode == 0 && res.status != 200)) {
+                                        console.log("update failed");
                                         res = this.dbWrite(req)
                                     }
-                                }, {
-                                    noAck: true
+                                }, (err, ret) => {
+                                    if (err) {
+                                        console.log("Error Occured");
+                                        console.log(err);
+                                    }
                                 });
-                            }
-                        })
-                    }
-                });
-            }
-        });
-
-    }
+                            }, {
+                                noAck: true
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+    /*else { // process listening from syncQ
+           amqp.connect('amqp://rabbitmq', (err0, connection) => {
+               if (!err0) {
+                   console.log("Successfully connected synQ");
+   
+                   connection.createChannel((err1, channel) => {
+                       if (!err1) {
+                           console.log("Channel created: SS");
+                           const exchangeName = 'syncQ';
+                           channel.assertExchange(exchangeName, 'fanout', {
+                               durable: true
+                           });
+   
+                           channel.assertQueue('', {
+                               exclusive: true
+                           }, (err2, q) => {
+                               if (!err2) {
+                                   channel.bindQueue(q.queue, exchangeName, '');
+   
+                                   channel.consume(q.queue, (msg) => {
+                                       req = JSON.parse(msg.content.toString());
+                                       res = this.dbWrite(req);
+                                       while (res.statusCode != 200 || res.statusCode != 201 || (res.statusCode == 0 && res.status != 200)) {
+                                           res = this.dbWrite(req)
+                                       }
+                                   }, {
+                                       noAck: true
+                                   });
+                               }
+                           })
+                       }
+                   });
+               }
+           });
+   
+       }*/
 }
