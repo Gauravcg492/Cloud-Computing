@@ -1,0 +1,41 @@
+version: "1"
+services:
+  orchestrator:
+    container_name: orchestrator
+    image: orchestrator:latest
+    restart: always
+    build: ./Orchestrator
+    command: npm start
+    ports: 
+      - 80:80
+    links:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    
+  master:
+    image: master:latest
+    container_name: master
+    restart: on-failure
+    build: ./Master
+    command: sh -c "sleep 30 && npm start"
+    environment:
+      - WORKER=MASTER
+      - DB_CONNECTION=mongodb://mmongo:27017
+    entrypoint: ["sh"]
+  
+  slave:
+    image: slave:latest
+    container_name: slave
+    restart: on-failure
+    build: ./Slave
+    command: sh -c "sleep 30 && npm start"
+    environment:
+      - WORKER=MASTER
+      - DB_CONNECTION=mongodb://mmongo:27017
+    entrypoint: ["sh"]

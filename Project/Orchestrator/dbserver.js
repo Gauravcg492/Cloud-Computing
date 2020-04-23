@@ -8,7 +8,7 @@ require('dotenv/config');
 
 // Initializing the server
 const server = express();
-const PORT = 80;
+const PORT = 8080;
 
 // configuring the server
 server.use(bodyParser.urlencoded({extended: false}));
