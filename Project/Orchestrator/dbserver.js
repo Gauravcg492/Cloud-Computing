@@ -4,6 +4,7 @@ const dbi = require('./routes/db');
 const crash = require('./routes/crash');
 const worker = require('./routes/worker');
 const bodyParser = require('body-parser');
+const containers = require('./middlewares/containers');
 require('dotenv/config');
 
 // Initializing the server
@@ -40,7 +41,13 @@ server.use((error, req,res,next) => {
     res.json({});
 });
 
+
+
 // Listening on port 8080
 server.listen(PORT, () => {
+    containers.initialSetUp();
     console.log(`Listening on port ${PORT}...`);
+    //console.log("Setting up...");
+    //containers.createMongoContainer('tmongo', 'mmongo');
+    //containers.deleteContainers();
 });

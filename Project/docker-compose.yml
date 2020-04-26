@@ -16,3 +16,15 @@ services:
     container_name: smongo
     ports:
       - 26000:27017
+  master:
+    image: master:latest
+    container_name: master
+    restart: on-failure
+    build: ./Master
+    command: "npm start"
+    environment:
+      - WORKER=MASTER
+      - DB_CONNECTION=mongodb://mmongo:27017
+      - RMQ_ADDR=amqp://localhost
+    depends_on:
+      - mmongo
