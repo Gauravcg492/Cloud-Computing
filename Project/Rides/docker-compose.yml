@@ -1,0 +1,15 @@
+version: "2"
+services:
+  rserver:
+    container_name: rides
+    image: rides:latest
+    restart: always
+    build: ./
+    command: npm start
+    ports:
+      - "80:80"
+    links:
+      - rmongo
+  rmongo:
+    container_name: rmongo
+    image: mongo

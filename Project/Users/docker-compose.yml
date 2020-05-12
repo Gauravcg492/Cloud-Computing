@@ -1,0 +1,15 @@
+version: "2"
+services:
+  userver:
+    container_name: users
+    image: users:latest
+    restart: always
+    build: ./
+    command: npm start
+    ports:
+      - "80:80"
+    links:
+      - umongo
+  umongo:
+    container_name: umongo
+    image: mongo
