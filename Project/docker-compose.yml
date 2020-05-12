@@ -28,7 +28,7 @@ services:
     container_name: master
     restart: on-failure
     build: ./Master
-    command: sh -c "sleep 10 && npm start"
+    command: sh -c "sleep 30 && npm start"
     environment:
       - WORKER=MASTER
       - DB_CONNECTION=mongodb://mmongo:27017
@@ -44,13 +44,13 @@ services:
     container_name: slave_1
     restart: on-failure
     build: ./Slave
-    command: sh -c "sleep 10 && npm start"
+    command: sh -c "sleep 30 && npm start"
     environment:
       - WORKER=SLAVE
       - DB_CONNECTION=mongodb://smongo_1:27017
       - RMQ_ADDR=amqp://rabbitmq
       - ZPATH=zookeeper:2181
-      - WNAME=master
+      - WNAME=slave_1
     depends_on:
       - smongo_1
       - zookeeper
@@ -60,7 +60,7 @@ services:
     image: orchestrator:latest
     restart: always
     build: ./Orchestrator
-    command: sh -c "sleep 30 && npm start"
+    command: sh -c "sleep 60 && npm start"
     environment:
       - RMQ_ADDR=amqp://rabbitmq
       - DPATH=/app/orchestrator/data/constants.json
@@ -71,4 +71,4 @@ services:
       - 80:80
     depends_on:
       - rabbitmq
-      - zoo
+      - zookeeper
