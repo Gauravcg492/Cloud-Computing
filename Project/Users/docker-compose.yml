@@ -8,8 +8,3 @@ services:
     command: npm start
     ports:
       - "80:80"
-    links:
-      - umongo
-  umongo:
-    container_name: umongo
-    image: mongo
