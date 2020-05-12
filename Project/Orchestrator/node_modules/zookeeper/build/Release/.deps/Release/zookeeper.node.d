@@ -1,0 +1,1 @@
+cmd_Release/zookeeper.node := ln -f "Release/obj.target/zookeeper.node" "Release/zookeeper.node" 2>/dev/null || (rm -rf "Release/zookeeper.node" && cp -af "Release/obj.target/zookeeper.node" "Release/zookeeper.node")

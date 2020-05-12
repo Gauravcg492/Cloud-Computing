@@ -1,6 +1,6 @@
 FROM node:latest
-WORKDIR /app/slave
-COPY package.json /app/slave
+WORKDIR /app/master
+COPY package.json /app/master
 RUN npm install
-COPY . /app/slave
+COPY . /app/master
 ENV TEAM_NAME=CC_0012_0989_1110_1094

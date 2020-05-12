@@ -200,6 +200,7 @@ exports.dbRead = async (req, callback) => {
     callback(res);
 }
 
+
 exports.write = () => {
     amqp.connect(process.env.RMQ_ADDR, (err0, connection) => {
         if (!err0) {

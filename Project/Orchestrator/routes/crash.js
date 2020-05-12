@@ -10,7 +10,7 @@ router.post('/master', async (req,res,next) => {
     // TODO destroy master
     try {
         let constants = await JSON.parse(fs.readFileSync(path));
-        containers.deleteContainer(constants.masterWorker);
+        containers.deleteContainer(constants.masterWorker, 'kill');
         pid = constants.masterPid;
         // probably need to change it to string
         res.status(200).json([pid])
@@ -23,7 +23,7 @@ router.post('/master', async (req,res,next) => {
 router.post('/slave', async (req,res,next) => {
     // TODO destroy slave with highest pid
     try {
-        let pid = await containers.deleteSlaveContainers();
+        let pid = await containers.deleteSlaveContainers('kill');
         res.status(200).json([pid]);
     } catch(err) {
         console.log(err);

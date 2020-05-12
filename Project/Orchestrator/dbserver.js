@@ -5,11 +5,16 @@ const crash = require('./routes/crash');
 const worker = require('./routes/worker');
 const bodyParser = require('body-parser');
 const containers = require('./middlewares/containers');
+const  zookeeperWatcher = require('zookeeper-watcher');
 require('dotenv/config');
 
 // Initializing the server
 const server = express();
-const PORT = 8080;
+const PORT = 9000;
+const zoo = process.env.ZPATH;
+const client = new zookeeperWatcher({
+    hosts : [zoo]
+});
 
 // configuring the server
 server.use(bodyParser.urlencoded({extended: false}));
@@ -41,6 +46,21 @@ server.use((error, req,res,next) => {
     res.json({});
 });
 
+/*
+client.once('connected', function (err) {
+    console.log("Connected to zookeeper");
+    client.watch('/workers/slave', function (err, value, zstat) {
+        console.log("Watch activated");
+        if(!err) {
+            console.log("no error");
+            console.log(value);
+            console.log(zstat);
+        } else{
+            console.log("Error in watch");
+            console.log(err);
+        }
+    });
+});*/
 
 
 // Listening on port 8080

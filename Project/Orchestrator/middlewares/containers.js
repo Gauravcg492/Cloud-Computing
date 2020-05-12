@@ -1,9 +1,48 @@
 const Docker = require('dockerode');
+//const zookeeper = require('node-zookeeper-client');
+const zookeeper = require('node-zookeeper-client');
 const fs = require('fs');
 require('dotenv/config');
 
 const docker = new Docker();
 const path = process.env.DPATH;
+const zoo = process.env.ZPATH;
+
+const client = zookeeper.createClient(zoo);
+
+client.connect();
+
+//adding zookeeper functions
+exports.createNode = (nodepath, name) => {
+    console.log("create node called");
+    let node = nodepath + name;
+    client.create(node, Buffer.from(node), (err, path) => {
+        if (err) {
+            if(err.code === -110) {
+                console.log("Node exists ", node);
+            } else {
+                console.log('Error creating for path ', node);
+                console.log(err);
+            }            
+        } else {
+            console.log("Node created at path: ", path);
+        }
+    });
+}
+
+exports.deleteNode = (nodepath, name) => {
+    console.log('delete node called on');
+    let node = nodepath + name;
+    console.log(node);
+    client.remove(node, -1, (err) => {
+        if (err) {
+            console.log("Error deleting");
+            console.log(err.stack);
+        } else {
+            console.log("Successfully removed");
+        }
+    });
+}
 
 // working function TODO use SetInterval to call this function
 exports.createMongoContainer = async (mongoName, masterMongo) => {
@@ -72,6 +111,7 @@ exports.createSlaveContainer = async (slaveName, mongoName) => {
                     pid = data.State.Pid;
                     constants.containers[name] = pid;
                     fs.writeFileSync(path, JSON.stringify(constants));
+                    this.createNode(slaveName);
                 }
             });
         });
@@ -100,18 +140,34 @@ exports.createContainers = async (diff, total, masterMongo) => {
 
 };
 
-exports.deleteContainer = (name) => {
+exports.deleteContainer = (name, option) => {
     console.log("deleting container");
-    docker.getContainer(name).remove({ force: true }, (err, data) => {
-        if (!err) {
-            console.log("Container deleted");
-            console.log(data);
-        }
-    });
+    if (option === 'kill') {
+        docker.getContainer(name).kill((err, data) => {
+            console.log("Container killed");
+        });
+
+    } else if (option === 'rm') {
+        docker.getContainer(name).remove({ force: true }, (err, data) => {
+            if (!err) {
+                console.log("Container removed");
+                console.log(data);
+            }
+        });
+    } else if (option === 'stop') {
+        docker.getContainer(name).stop((err => {
+            if(!err) {
+                console.log("container stopped");
+            } else {
+                console.log("Error in stopping");
+                console.log(err);
+            }
+        }))
+    }
 }
 
 // if races occur use async-lock
-exports.deleteSlaveContainers = async () => {
+exports.deleteSlaveContainers = async (option) => {
     let hpid = Number.MIN_VALUE;
     let containerName;
     let constants = await JSON.parse(fs.readFileSync(path));
@@ -124,15 +180,15 @@ exports.deleteSlaveContainers = async () => {
     }
     delete constants.containers[containerName];
     fs.writeFileSync(path, JSON.stringify(constants));
-    this.deleteContainer(containerName);
+    this.deleteContainer(containerName, option);
     let mongoName = 'smongo_' + containerName.split('_')[1];
-    this.deleteContainer(mongoName);
+    this.deleteContainer(mongoName, option);
     return hpid;
 }
 
 exports.deleteMultiContainers = (diff) => {
     for (let i = 0; i < diff; i++) {
-        this.deleteSlaveContainers();
+        this.deleteSlaveContainers('stop');
     }
 };
 
@@ -170,27 +226,66 @@ exports.getWorkerPids = () => {
     constants = JSON.parse(constants);
     pids.push(constants.masterPid);
     let entries = Object.entries(constants.containers);
-    for(const [cname,pid] of entries) {
+    for (const [cname, pid] of entries) {
         pids.push(pid);
     }
     return pids;
 }
 
-exports.initialSetUp = async () => {
-    let constants = await JSON.parse(fs.readFileSync(path));
+exports.startSetUp = (constants) => {
+    console.log("Start Up called");
+    this.createNode('/workers', '', zookeeper.CreateMode.PERSISTENT);
+    this.createNode('/workers/master', '', zookeeper.CreateMode.PERSISTENT);
+    this.createNode('/workers/slaves','', zookeeper.CreateMode.PERSISTENT);
     docker.getContainer(constants.masterWorker).inspect((err, data) => {
         if (!err) {
+            console.log("Master worker found");
             let pid = data.State.Pid;
             constants["masterPid"] = pid;
-            docker.getContainer('slave_1').inspect( (err, data) => {
-                if(!err) {
+            setTimeout(this.getData, 10000, '/workers/master/master');
+            //this.createNode('/workers/master/', constants.masterWorker, () => {console.log('lastest')});
+            //this.createNode('/workers/master/', 'master2', () => {});
+            docker.getContainer('slave_1').inspect((err, data) => {
+                if (!err) {
+                    console.log("slave worker found");
                     pid = data.State.Pid;
                     constants.containers['slave_1'] = pid;
+                    fs.writeFileSync(path, JSON.stringify(constants));
+                    //this.createNode('/workers/slaves/', 'slave_1');
+                } else {
                     fs.writeFileSync(path, JSON.stringify(constants));
                 }
             });
         } else {
             console.log(err);
         }
+    });
+}
+exports.getData = (cpath) => {
+    console.log("Get data called");
+    client.getData(cpath, (event) => {
+        console.log("Watcher");
+        console.log(event);
+    }, (err, data, stat) => {
+        if(!err) {
+            console.log("no error");
+            console.log(data);
+        } else {
+            console.log("get data error");
+            console.log(err);
+        }
+    })
+}
+
+exports.initialSetUp = async () => {
+    console.log("initial setup");
+    let constants = await JSON.parse(fs.readFileSync(path));
+    client.once('connected', () => {
+        console.log("Connection with zoo successful");
+        this.startSetUp(constants);
+        /*setTimeout(this.deleteNode, 15000, '/workers/master/', 'master');
+        setTimeout(this.deleteNode, 15000, '/workers/master', '');
+        setTimeout(this.deleteNode, 15000, '/workers/slaves', '');
+        setTimeout(this.deleteNode, 15000, '/workers', '');*/
     });
 };

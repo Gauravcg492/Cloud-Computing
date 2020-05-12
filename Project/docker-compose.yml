@@ -6,16 +6,23 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
+  zookeeper:
+    image: zookeeper
+    restart: always
+    container_name: zookeeper
+    ports:
+      - 2181:2181
+      - 8080:8080
   mmongo:
     image: mongo
     container_name: mmongo
     ports:
       - 25000:27017
-  smongo:
-    image: mongo
-    container_name: smongo
-    ports:
-      - 26000:27017
+  #smongo:
+  #  image: mongo
+  #  container_name: smongo
+  #  ports:
+  #    - 26000:27017
   master:
     image: master:latest
     container_name: master
@@ -28,3 +35,4 @@ services:
       - RMQ_ADDR=amqp://localhost
     depends_on:
       - mmongo
+      - zookeeper

@@ -1,8 +1,8 @@
 {
-  "name": "slave",
+  "name": "master",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "worker.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon worker.js"
@@ -15,6 +15,7 @@
     "dotenv": "^8.2.0",
     "mongoose": "^5.9.10",
     "mongoose-auto-increment": "^5.0.1",
+    "node-zookeeper-client": "^1.1.0",
     "nodemon": "^2.0.3"
   }
 }

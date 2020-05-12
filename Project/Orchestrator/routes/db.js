@@ -1,6 +1,7 @@
 // dependencies
 const express = require('express');
 const rabbitmq = require('../controllers/rabbitmq.js');
+const containers = require('../middlewares/containers');
 
 // variables
 const router = express.Router();
@@ -9,7 +10,7 @@ const router = express.Router();
 router.post('/write', rabbitmq.sendToWriteQ);
 
 // 9. Read from db
-router.post('/read', rabbitmq.sendToReadQ);
+router.post('/read', containers.updateCount, rabbitmq.sendToReadQ);
 
 router.post('/clear', (req,res,next) => {
     console.log("Clearing db");
