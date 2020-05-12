@@ -34,6 +34,12 @@ server.use((req,res,next) => {
 // setting the middleware to route the requests
 server.use('/api/v1',apiV1);
 
+server.use('/', (req, res, next) => {
+    console.log("health check");
+    res.status(200).json();
+    return;
+})
+
 // handling bad paths/errors
 server.use((req,res,next) => {
     res.status(405).json({});
