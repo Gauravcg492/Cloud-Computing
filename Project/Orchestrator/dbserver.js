@@ -10,7 +10,7 @@ require('dotenv/config');
 
 // Initializing the server
 const server = express();
-const PORT = 9000;
+const PORT = 80;
 const zoo = process.env.ZPATH;
 const client = new zookeeperWatcher({
     hosts : [zoo]

@@ -17,7 +17,8 @@ exports.dbWrite = async (req, callback) => {
     }
     if (action == 0) {
         try {
-            var result = await User.remove({});
+            let result = await User.remove({});
+            let result1 = await Ride.remove({});
             //res.status(200).json({});
             res.status = 200;
             console.log("success");
@@ -77,7 +78,7 @@ exports.dbWrite = async (req, callback) => {
                 //var response = await Ride.updateMany({users : username}, {$pull : {users : username}});
                 //console.log('Update response');
                 //console.log(response);
-                var response = await User.deleteOne(req.body.where);
+                let response = await User.deleteOne(req.body.where);
                 console.log('delete response');
                 console.log(response);
                 if (response.deletedCount > 0) {

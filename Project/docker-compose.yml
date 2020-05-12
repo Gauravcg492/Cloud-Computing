@@ -18,11 +18,11 @@ services:
     container_name: mmongo
     ports:
       - 25000:27017
-  #smongo:
-  #  image: mongo
-  #  container_name: smongo
-  #  ports:
-  #    - 26000:27017
+  smongo_1:
+    image: mongo
+    container_name: smongo_1
+    ports:
+      - 26000:27017
   master:
     image: master:latest
     container_name: master
@@ -39,3 +39,36 @@ services:
       - mmongo
       - zookeeper
       - rabbitmq
+  slave_1:
+    image: slave:latest
+    container_name: slave_1
+    restart: on-failure
+    build: ./Slave
+    command: sh -c "sleep 10 && npm start"
+    environment:
+      - WORKER=SLAVE
+      - DB_CONNECTION=mongodb://smongo_1:27017
+      - RMQ_ADDR=amqp://rabbitmq
+      - ZPATH=zookeeper:2181
+      - WNAME=master
+    depends_on:
+      - smongo_1
+      - zookeeper
+      - rabbitmq
+  orchestrator:
+    container_name: orchestrator
+    image: orchestrator:latest
+    restart: always
+    build: ./Orchestrator
+    command: sh -c "sleep 30 && npm start"
+    environment:
+      - RMQ_ADDR=amqp://rabbitmq
+      - DPATH=/app/orchestrator/data/constants.json
+      - ZPATH=zookeeper:2181
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports: 
+      - 80:80
+    depends_on:
+      - rabbitmq
+      - zoo

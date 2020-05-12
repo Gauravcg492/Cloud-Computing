@@ -1,1 +1,10 @@
-{"masterMongo":"mmongo","masterWorker":"master","count":0,"isFirst":true,"slaves":1,"total":1,"containers":{"slave_2":27272},"masterPid":26557}
+{
+    "masterMongo": "mmongo",
+    "masterWorker": "master",
+    "count": 0,
+    "isFirst": true,
+    "slaves": 1,
+    "total": 1,
+    "containers": {},
+    "masterPid": 4521
+}
