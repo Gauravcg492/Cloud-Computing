@@ -274,7 +274,7 @@ exports.startSetUp = (constants) => {
                     pid = data.State.Pid;
                     constants.containers['slave_1'] = pid;
                     fs.writeFileSync(path, JSON.stringify(constants));
-                    setTimeout(this.getData, 10000, '/workers/master/slave_1');
+                    setTimeout(this.getData, 10000, '/workers/slaves/slave_1');
                     //this.createNode('/workers/slaves/', 'slave_1');
                 } else {
                     fs.writeFileSync(path, JSON.stringify(constants));
