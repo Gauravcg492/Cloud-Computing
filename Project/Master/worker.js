@@ -6,7 +6,7 @@ require('dotenv/config');
 const worker = process.env.WORKER;
 const name = process.env.WNAME;
 const connection = mongoose.connection;
-const client = zookeeper.createClient(process.env.ZPATH);
+const client = zookeeper.createClient(process.env.ZPATH, {sessionTimeout: 1000});
 
 mongoose.connect(process.env.DB_CONNECTION, {
     useNewUrlParser: true,
@@ -15,9 +15,7 @@ mongoose.connect(process.env.DB_CONNECTION, {
     useFindAndModify: false
 });
 
-client.connect();
-
-function createNode(nodepath, name, type){
+async function createNode(nodepath, name, type, callback){
     console.log("create node called");
     //console.log(cbacks);
     let node = nodepath + name;
@@ -32,26 +30,33 @@ function createNode(nodepath, name, type){
         } else {
             console.log("Node created at path: ", path);
         }
+        callback();
     });
+}
+
+function noop() {
+    console.log("No Op");
 }
 
 // checking if connection established
 connection.once('open', () => {
     console.log('Connection Established with Mongo');
-    client.once("connected", () => {
-        console.log("Starting worker");
-        createNode('/workers', '', zookeeper.CreateMode.PERSISTENT);
-        createNode('/workers/master', '', zookeeper.CreateMode.PERSISTENT);
-        createNode('/workers/slaves','', zookeeper.CreateMode.PERSISTENT);
+    client.once("connected", async() => {
+        console.log("Connected to zookeeper");
+        createNode('/workers', '', zookeeper.CreateMode.PERSISTENT, noop);
+        createNode('/workers/master', '', zookeeper.CreateMode.PERSISTENT, noop);
+        createNode('/workers/slaves','', zookeeper.CreateMode.PERSISTENT, noop);
         if (worker == 'MASTER') {
             console.log("Entering write");
-            createNode('/workers/master/', name, zookeeper.CreateMode.EPHEMERAL);
-            workers.write();
+            createNode('/workers/master/', name, zookeeper.CreateMode.EPHEMERAL, workers.write);
+            //workers.write();
         } else {
             console.log("Entering read");
-            createNode('/workers/slaves/', name, zookeeper.CreateMode.EPHEMERAL);
-            workers.read();
+            createNode('/workers/slaves/', name, zookeeper.CreateMode.EPHEMERAL, workers.read);
+            //workers.read();
         }
-    });    
+    });
+    console.log(`Connecting to ${client}`);
+    client.connect();    
 });
 

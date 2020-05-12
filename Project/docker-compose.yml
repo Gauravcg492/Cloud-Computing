@@ -28,11 +28,14 @@ services:
     container_name: master
     restart: on-failure
     build: ./Master
-    command: "npm start"
+    command: sh -c "sleep 10 && npm start"
     environment:
       - WORKER=MASTER
       - DB_CONNECTION=mongodb://mmongo:27017
-      - RMQ_ADDR=amqp://localhost
+      - RMQ_ADDR=amqp://rabbitmq
+      - ZPATH=zookeeper:2181
+      - WNAME=master
     depends_on:
       - mmongo
       - zookeeper
+      - rabbitmq

@@ -8,7 +8,7 @@ const docker = new Docker();
 const path = process.env.DPATH;
 const zoo = process.env.ZPATH;
 
-const client = zookeeper.createClient(zoo);
+const client = zookeeper.createClient(zoo, {sessionTimeout: 10000});
 
 client.connect();
 
@@ -45,7 +45,7 @@ exports.deleteNode = (nodepath, name) => {
 }
 
 // working function TODO use SetInterval to call this function
-exports.createMongoContainer = async (mongoName, masterMongo) => {
+exports.createMongoContainer = async (mongoName, masterMongo, slaveName) => {
     // create mongo image
     let model = {
         Image: 'mongo',
@@ -69,6 +69,7 @@ exports.createMongoContainer = async (mongoName, masterMongo) => {
                     exec.start((err, data) => {
                         if (!err) {
                             console.log("Command successfully executed");
+                            this.createSlaveContainer(slaveName, mongoName);
                         }
                     })
                 } else {
@@ -86,11 +87,11 @@ exports.createMongoContainer = async (mongoName, masterMongo) => {
 exports.createSlaveContainer = async (slaveName, mongoName) => {
     // create slave container image
     let model = {
-        Image: 'slave:latest',
+        Image: 'master:latest',
         Hostname: slaveName,
         name: slaveName,
         Cmd: "worker.js",
-        Env: ["WORKER=SLAVE", "DB_CONNECTION=mongodb://" + mongoName + ":27017", "RMQ_ADDR=amqp://rabbitmq"],
+        Env: ["WORKER=MASTER", "DB_CONNECTION=mongodb://" + mongoName + ":27017", "RMQ_ADDR=amqp://rabbitmq", "ZPATH=zookeeper:2181", "WNAME="+slaveName],
         HostConfig: {
             NetworkMode: "project_default"
         }
@@ -107,11 +108,12 @@ exports.createSlaveContainer = async (slaveName, mongoName) => {
                 } else {
                     console.log("Data");
                     console.log(data.State.Pid);
-                    name = data.Name.substr(1);
-                    pid = data.State.Pid;
+                    console.log(data.State.ExitCode);
+                    let name = data.Name.substr(1);
+                    let pid = data.State.Pid;
                     constants.containers[name] = pid;
                     fs.writeFileSync(path, JSON.stringify(constants));
-                    this.createNode(slaveName);
+                    setTimeout(this.getData, 10000,'/workers/master/' + name);
                 }
             });
         });
@@ -129,8 +131,8 @@ exports.createContainers = async (diff, total, masterMongo) => {
         let mongoName = 'smongo_' + num.toString();
         let slaveName = 'slave_' + num.toString();
         try {
-            await this.createMongoContainer(mongoName, masterMongo);
-            await this.createSlaveContainer(slaveName, mongoName);
+            await this.createMongoContainer(mongoName, masterMongo, slaveName);
+            //await this.createSlaveContainer(slaveName, mongoName);
         } catch (err) {
             console.log("Error in creation");
             console.log(err);
@@ -262,7 +264,7 @@ exports.startSetUp = (constants) => {
     });
 }
 exports.getData = (cpath) => {
-    console.log("Get data called");
+    console.log("Get data called fot path ", cpath);
     client.getData(cpath, (event) => {
         console.log("Watcher");
         console.log(event);
@@ -287,5 +289,6 @@ exports.initialSetUp = async () => {
         setTimeout(this.deleteNode, 15000, '/workers/master', '');
         setTimeout(this.deleteNode, 15000, '/workers/slaves', '');
         setTimeout(this.deleteNode, 15000, '/workers', '');*/
+        setTimeout(this.createContainers, 10000, 1, 1, 'mmongo');
     });
 };
