@@ -1,18 +1,19 @@
+// dependencies
 const Docker = require('dockerode');
-//const zookeeper = require('node-zookeeper-client');
 const zookeeper = require('node-zookeeper-client');
 const fs = require('fs');
 require('dotenv/config');
 
+// variables
 const docker = new Docker();
 const path = process.env.DPATH;
 const zoo = process.env.ZPATH;
-
 const client = zookeeper.createClient(zoo, { sessionTimeout: 10000 });
 
+// connect to zookeeper
 client.connect();
 
-//adding zookeeper functions
+// function to create zookeeper nodes 
 exports.createNode = (nodepath, name) => {
     console.log("create node called");
     let node = nodepath + name;
@@ -29,22 +30,8 @@ exports.createNode = (nodepath, name) => {
         }
     });
 }
-/*
-exports.deleteNode = (nodepath, name) => {
-    console.log('delete node called on');
-    let node = nodepath + name;
-    console.log(node);
-    client.remove(node, -1, (err) => {
-        if (err) {
-            console.log("Error deleting");
-            console.log(err.stack);
-        } else {
-            console.log("Successfully removed");
-        }
-    });
-}*/
 
-// working function TODO use SetInterval to call this function
+// function to create mongo container
 exports.createMongoContainer = async (mongoName, masterMongo, slaveName) => {
     // create mongo image
     let model = {
@@ -55,12 +42,15 @@ exports.createMongoContainer = async (mongoName, masterMongo, slaveName) => {
             NetworkMode: "project_default"
         }
     }
+    // command to update the slave db with master
     let command = `mongodump --host ${masterMongo} --port 27017 && mongorestore --host ${mongoName} --port 27017`;
-
+    // create docker container (async)
     docker.createContainer(model).then((container) => {
         console.log("Container created");
+        // start the containers
         container.start(() => {
             console.log("container started");
+            // execute a command
             container.exec({
                 Cmd: ['bash', '-c', command]
             }, (err, exec) => {
@@ -69,6 +59,7 @@ exports.createMongoContainer = async (mongoName, masterMongo, slaveName) => {
                     exec.start((err, data) => {
                         if (!err) {
                             console.log("Command successfully executed");
+                            // create the slave container and connect to mongoName
                             this.createSlaveContainer(slaveName, mongoName);
                         }
                     })
@@ -84,6 +75,7 @@ exports.createMongoContainer = async (mongoName, masterMongo, slaveName) => {
     });
 };
 
+// function to create slave container
 exports.createSlaveContainer = async (slaveName, mongoName) => {
     // create slave container image
     let model = {
@@ -96,11 +88,13 @@ exports.createSlaveContainer = async (slaveName, mongoName) => {
             NetworkMode: "project_default"
         }
     }
+    // read constants.json file to update the containers object with new slave name and pid
     let constants = await JSON.parse(fs.readFileSync(path))
     docker.createContainer(model).then((container) => {
         console.log("Container created");
         container.start(() => {
             console.log("container started");
+            // inspect the container to obtain the pid of the container
             container.inspect((err, data) => {
                 if (err) {
                     console.log("Error inspection");
@@ -108,11 +102,11 @@ exports.createSlaveContainer = async (slaveName, mongoName) => {
                 } else {
                     console.log("Data");
                     console.log(data.State.Pid);
-                    console.log(data.State.ExitCode);
                     let name = data.Name.substr(1);
                     let pid = data.State.Pid;
                     constants.containers[name] = pid;
                     fs.writeFileSync(path, JSON.stringify(constants));
+                    // attach the watcher event to the newly created container
                     setTimeout(this.getData, 10000, '/workers/master/' + name);
                 }
             });
@@ -121,9 +115,9 @@ exports.createSlaveContainer = async (slaveName, mongoName) => {
         console.log("Error creating container");
         console.log(err);
     });
-
 };
 
+// fucntion which creates diff number of container by calling the above defined function
 exports.createContainers = async (diff, total, masterMongo) => {
 
     for (let i = 1; i <= diff; i++) {
@@ -131,8 +125,7 @@ exports.createContainers = async (diff, total, masterMongo) => {
         let mongoName = 'smongo_' + num.toString();
         let slaveName = 'slave_' + num.toString();
         try {
-            await this.createMongoContainer(mongoName, masterMongo, slaveName);
-            //await this.createSlaveContainer(slaveName, mongoName);
+            this.createMongoContainer(mongoName, masterMongo, slaveName);
         } catch (err) {
             console.log("Error in creation");
             console.log(err);
@@ -142,6 +135,13 @@ exports.createContainers = async (diff, total, masterMongo) => {
 
 };
 
+// function to delete the worker container 
+/*
+* Option
+* rm : remove the container
+* kill : crash the container
+* stop : stop the container
+*/
 exports.deleteContainer = (name, option) => {
     console.log("deleting container");
     if (option === 'kill') {
@@ -176,6 +176,7 @@ exports.deleteContainer = (name, option) => {
     }
 }
 
+// function which call the above function for both the mongo and worker container
 exports.deleteContainers = async (containerName, option, update) => {
     let mongoName = ""
     if (containerName.startsWith("slave")) {
@@ -193,10 +194,11 @@ exports.deleteContainers = async (containerName, option, update) => {
     this.deleteContainer(mongoName, option);
 }
 
-// if races occur use async-lock
+// function which checks for which slave container to delete
 exports.deleteSlaveContainers = async (option) => {
     let hpid = Number.MIN_VALUE;
     let containerName;
+    // get container and their pids from the constants.json file
     let constants = await JSON.parse(fs.readFileSync(path));
     let entries = Object.entries(constants.containers);
     for (const [cname, pid] of entries) {
@@ -209,13 +211,16 @@ exports.deleteSlaveContainers = async (option) => {
     return hpid;
 }
 
+// functions which calls the above function diff number of times
 exports.deleteMultiContainers = (diff) => {
     for (let i = 0; i < diff; i++) {
         this.deleteSlaveContainers('stop');
     }
 };
 
+// function which is called every 2 minutes which does scale in/out
 exports.timer = async () => {
+    // calculate how many slaves to create/delete
     let constants = await JSON.parse(fs.readFileSync(path));
     let slaves = Math.ceil(constants.count / 20);
     slaves = slaves > 0 ? slaves : 1;
@@ -231,6 +236,7 @@ exports.timer = async () => {
     fs.writeFileSync(path, JSON.stringify(constants));
 }
 
+// function which increments the count variable and writes it to constants.json file
 exports.updateCount = async (req, res, next) => {
     let constants = await JSON.parse(fs.readFileSync(path));
     constants.count++;
@@ -241,8 +247,8 @@ exports.updateCount = async (req, res, next) => {
     fs.writeFileSync(path, JSON.stringify(constants));
     next();
 };
-// TODO add updateCount in the right place
 
+// function to get the pids of all the worker containers (uses constants.json file)
 exports.getWorkerPids = () => {
     const pids = [];
     let constants = fs.readFileSync(path);
@@ -255,27 +261,28 @@ exports.getWorkerPids = () => {
     return pids;
 }
 
+// initial set up to  create nodes
 exports.startSetUp = (constants) => {
     console.log("Start Up called");
     this.createNode('/workers', '', zookeeper.CreateMode.PERSISTENT);
     this.createNode('/workers/master', '', zookeeper.CreateMode.PERSISTENT);
     this.createNode('/workers/slaves', '', zookeeper.CreateMode.PERSISTENT);
+    // inspect the master and slave container for their pids
     docker.getContainer(constants.masterWorker).inspect((err, data) => {
         if (!err) {
             console.log("Master worker found");
             let pid = data.State.Pid;
             constants["masterPid"] = pid;
+            // attach the watcher event to master znode
             setTimeout(this.getData, 10000, '/workers/master/master');
-            //this.createNode('/workers/master/', constants.masterWorker, () => {console.log('lastest')});
-            //this.createNode('/workers/master/', 'master2', () => {});
             docker.getContainer('slave_1').inspect((err, data) => {
                 if (!err) {
                     console.log("slave worker found");
                     pid = data.State.Pid;
                     constants.containers['slave_1'] = pid;
                     fs.writeFileSync(path, JSON.stringify(constants));
+                    // attach the watcher event to slave znode
                     setTimeout(this.getData, 10000, '/workers/slaves/slave_1');
-                    //this.createNode('/workers/slaves/', 'slave_1');
                 } else {
                     fs.writeFileSync(path, JSON.stringify(constants));
                 }
@@ -286,6 +293,7 @@ exports.startSetUp = (constants) => {
     });
 };
 
+// function which is called by the watcher event which create a new slave in its place
 exports.maintainAvailability = async (workerName) => {
     console.log("Availability called");
     if (workerName.startsWith("slave")) {
@@ -298,25 +306,28 @@ exports.maintainAvailability = async (workerName) => {
         fs.writeFileSync(path, JSON.stringify(constants));
     } else {
         console.log("Master Crashed");
+        // TODO master election
     }
 };
 
+// function which attaches the watcher event to the node path specified 
 exports.getData = (cpath) => {
     console.log("Get data called, for path ", cpath);
     client.getData(cpath, (event) => {
         console.log("Watcher called for ", event);
         try {
             let workerName = event.path.split('/')[3];
+            // inspect the container which caused the event
             docker.getContainer(workerName).inspect((err, data) => {
                 if (!err) {
                     console.log("No Error during inspection");
                     let exitCode = data.State.ExitCode;
                     console.log(exitCode);
                     //console.log(data);
+                    // check if it was a crash or stopped
                     if (exitCode === 137 || exitCode === 139) {
                         // create new container
                         this.maintainAvailability(workerName);
-
                     } else if (exitCode === 143) {
                         this.deleteContainers(workerName, 'rm', false);
                         //this.deleteContainer(workerName, 'rm');
@@ -330,7 +341,6 @@ exports.getData = (cpath) => {
             console.log("Error during splice");
             console.log(err);
         }
-
         //console.log(event);
     }, (err, data, stat) => {
         if (!err) {
@@ -343,16 +353,12 @@ exports.getData = (cpath) => {
     })
 }
 
+// first function called by the orchestrator to initialze
 exports.initialSetUp = async () => {
     console.log("initial setup");
     let constants = await JSON.parse(fs.readFileSync(path));
     client.once('connected', () => {
         console.log("Connection with zoo successful");
         this.startSetUp(constants);
-        /*setTimeout(this.deleteNode, 15000, '/workers/master/', 'master');
-        setTimeout(this.deleteNode, 15000, '/workers/master', '');
-        setTimeout(this.deleteNode, 15000, '/workers/slaves', '');
-        setTimeout(this.deleteNode, 15000, '/workers', '');*/
-        //setTimeout(this.createContainers, 10000, 1, 1, 'mmongo');
     });
 };

@@ -14,7 +14,6 @@ router.post('/read', containers.updateCount, rabbitmq.sendToReadQ);
 
 router.post('/clear', (req,res,next) => {
     console.log("Clearing db");
-    // TODO send to writeQ
     req.body.action = 0;
     next();
 }, rabbitmq.sendToWriteQ);

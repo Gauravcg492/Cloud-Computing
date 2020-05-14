@@ -5,7 +5,7 @@ const autoIncrement = require('mongoose-auto-increment');
 // initialize incrementor
 autoIncrement.initialize(mongoose.connection);
 
-// define the schema
+// define the user schema
 const userSchema = mongoose.Schema({
     userId : {
         type : Number
