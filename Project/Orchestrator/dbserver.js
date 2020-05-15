@@ -44,6 +44,6 @@ server.use((error, req,res,next) => {
 
 // Listening on port 
 server.listen(PORT, () => {
-    containers.initialSetUp();
+    //containers.initialSetUp();
     console.log(`Listening on port ${PORT}...`);
 });

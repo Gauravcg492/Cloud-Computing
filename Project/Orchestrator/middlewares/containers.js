@@ -29,7 +29,7 @@ exports.createNode = (nodepath, name) => {
             console.log("Node created at path: ", path);
         }
     });
-}
+};
 
 // function to create mongo container
 exports.createMongoContainer = async (mongoName, masterMongo, slaveName) => {
@@ -174,7 +174,7 @@ exports.deleteContainer = (name, option) => {
             }
         }))
     }
-}
+};
 
 // function which call the above function for both the mongo and worker container
 exports.deleteContainers = async (containerName, option, update) => {
@@ -187,12 +187,13 @@ exports.deleteContainers = async (containerName, option, update) => {
         }
         mongoName = 'smongo_' + containerName.split('_')[1];
     } else {
-        mongoName = 'mmongo';
+        let constants = await JSON.parse(fs.writeFileSync(path));
+        mongoName = constants.masterMongo;
     }
 
     this.deleteContainer(containerName, option);
     this.deleteContainer(mongoName, option);
-}
+};
 
 // function which checks for which slave container to delete
 exports.deleteSlaveContainers = async (option) => {
@@ -209,7 +210,7 @@ exports.deleteSlaveContainers = async (option) => {
     }
     this.deleteContainers(containerName, option, true);
     return hpid;
-}
+};
 
 // functions which calls the above function diff number of times
 exports.deleteMultiContainers = (diff) => {
@@ -234,7 +235,7 @@ exports.timer = async () => {
     constants.count = 0;
     constants.slaves = slaves;
     fs.writeFileSync(path, JSON.stringify(constants));
-}
+};
 
 // function which increments the count variable and writes it to constants.json file
 exports.updateCount = async (req, res, next) => {
@@ -259,7 +260,7 @@ exports.getWorkerPids = () => {
         pids.push(pid);
     }
     return pids;
-}
+};
 
 // initial set up to  create nodes
 exports.startSetUp = (constants) => {
@@ -293,21 +294,36 @@ exports.startSetUp = (constants) => {
     });
 };
 
+exports.electMaster = (constants) => {
+    let lpid = Number.MAX_VALUE;
+    let containerName = "";
+    let entries = Object.entries(constants.containers);
+    for (const [cname, pid] of entries) {
+        if (pid < hpid) {
+            hpid = pid;
+            containerName = cname;
+        }
+    }
+    return containerName;
+};
+
 // function which is called by the watcher event which create a new slave in its place
 exports.maintainAvailability = async (workerName) => {
+    let constants = await JSON.parse(fs.readFileSync(path));
     console.log("Availability called");
     if (workerName.startsWith("slave")) {
         console.log("Slave Crashed");
         this.deleteContainers(workerName, 'rm', false);
-        let constants = await JSON.parse(fs.readFileSync(path))
         this.createContainers(1, constants.total, constants.masterMongo);
         delete constants.containers[workerName];
-        constants.total += 1;
-        fs.writeFileSync(path, JSON.stringify(constants));
     } else {
         console.log("Master Crashed");
         // TODO master election
+        this.deleteContainers(workerName, 'rm', false);
+        let masterName = this.electMaster(constants);
     }
+    constants.total += 1; 
+    fs.writeFileSync(path, JSON.stringify(constants));
 };
 
 // function which attaches the watcher event to the node path specified 
@@ -351,7 +367,7 @@ exports.getData = (cpath) => {
             console.log(err);
         }
     })
-}
+};
 
 // first function called by the orchestrator to initialze
 exports.initialSetUp = async () => {
